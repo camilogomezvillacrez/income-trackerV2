@@ -61,7 +61,7 @@ export const SUBCATS: Record<string, string[]> = {
   Ahorro:          ["Fondo", "CDT", "Inversión"],
   "Educación":     ["Curso", "Libro", "Universidad"],
   "Gastos hormiga":["Café", "Snack", "Recarga", "Parqueadero", "Propina"],
-  Tecnología:      ["Celular", "Computador", "Tablet", "Accesorios", "Software", "Suscripciones"],
+  Tecnología:      ["Celular", "Computador", "Tablet", "Smartwatch", "Accesorios", "Software", "Suscripciones"],
   Suscripciones:   ["Streaming", "Música", "Software", "Juegos", "Noticias", "Fitness"],
 };
 
@@ -76,7 +76,7 @@ export const SUBCAT_EMOJIS: Record<string, Record<string, string>> = {
   Ahorro:          { Fondo:"🐷", CDT:"📋", "Inversión":"📈" },
   "Educación":     { Curso:"📖", Libro:"📚", Universidad:"🏫" },
   "Gastos hormiga":{ "Café":"☕", Snack:"🍪", Recarga:"📱", Parqueadero:"🅿️", Propina:"💝" },
-  Tecnología:      { Celular:"📱", Computador:"💻", Tablet:"📲", Accesorios:"🖱️", Software:"⚙️", Suscripciones:"🔑" },
+  Tecnología:      { Celular:"📱", Computador:"💻", Tablet:"📲", Smartwatch:"⌚", Accesorios:"🖱️", Software:"⚙️", Suscripciones:"🔑" },
   Suscripciones:   { Streaming:"📺", "Música":"🎵", Software:"💾", Juegos:"🎮", Noticias:"📰", Fitness:"🏃" },
 };
 
