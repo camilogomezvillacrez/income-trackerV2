@@ -98,7 +98,7 @@ export default function DashboardShell({ userEmail }: { userEmail: string }) {
 
         .shell-fab {
           position: fixed;
-          bottom: 80px;
+          bottom: 92px;
           right: 18px;
           z-index: 210;
           width: 52px;
