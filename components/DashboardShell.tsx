@@ -45,14 +45,16 @@ export default function DashboardShell({ userEmail }: { userEmail: string }) {
           <Sidebar />
         </div>
 
-        {/* Main content */}
+        {/* Main content — key={view} re-monta el div y dispara la animación en cada cambio */}
         <main className="shell-main">
-          {view === "resumen"       && <ResumenView />}
-          {view === "movimientos"   && <MovimientosView />}
-          {view === "metas"         && <MetasView />}
-          {view === "cats"          && <CategoriasView />}
-          {view === "configuracion" && <ConfiguracionView />}
-          {isCatDetail              && <CategoriaDetailView catName={view.slice(4)} />}
+          <div key={view} className="view-animate">
+            {view === "resumen"       && <ResumenView />}
+            {view === "movimientos"   && <MovimientosView />}
+            {view === "metas"         && <MetasView />}
+            {view === "cats"          && <CategoriasView />}
+            {view === "configuracion" && <ConfiguracionView />}
+            {isCatDetail              && <CategoriaDetailView catName={view.slice(4)} />}
+          </div>
         </main>
       </div>
 
