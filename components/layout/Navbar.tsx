@@ -5,11 +5,13 @@ import MonthNav from "./MonthNav";
 import { useDashboardStore } from "@/store/dashboardStore";
 
 export default function Navbar() {
-  const { openModal, userEmail } = useDashboardStore();
+  const { openModal, userEmail, view, setView } = useDashboardStore();
 
   const initials = userEmail
     ? userEmail.split("@")[0].slice(0, 2).toUpperCase()
     : "??";
+
+  const isConfig = view === "configuracion";
 
   async function handleLogout() {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -51,21 +53,30 @@ export default function Navbar() {
           + Registrar
         </button>
 
-        {/* Avatar + email */}
-        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-          <div
-            title={userEmail}
-            style={{ width: "28px", height: "28px", borderRadius: "50%", background: "#4A7C59", color: "#fff", fontSize: "11px", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}
-          >
-            {initials}
-          </div>
-          <button
-            onClick={handleLogout}
-            style={{ background: "none", color: "var(--muted)", fontSize: "12px", padding: "6px 10px", borderRadius: "7px", border: "1px solid var(--border)", cursor: "pointer", fontFamily: "var(--font-sans)" }}
-          >
-            Salir
-          </button>
-        </div>
+        {/* Avatar — toca para ir a Configuración */}
+        <button
+          onClick={() => setView(isConfig ? "resumen" : "configuracion")}
+          title={isConfig ? "Volver al resumen" : `${userEmail} · Configuración`}
+          style={{
+            width: "32px", height: "32px", borderRadius: "50%",
+            background: isConfig ? "var(--text)" : "#4A7C59",
+            color: "#fff", fontSize: "11px", fontWeight: 700,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            flexShrink: 0, border: "none", cursor: "pointer",
+            outline: isConfig ? "2px solid var(--text)" : "none",
+            outlineOffset: "2px",
+            transition: "background 0.15s",
+          }}
+        >
+          {initials}
+        </button>
+
+        <button
+          onClick={handleLogout}
+          style={{ background: "none", color: "var(--muted)", fontSize: "12px", padding: "6px 10px", borderRadius: "7px", border: "1px solid var(--border)", cursor: "pointer", fontFamily: "var(--font-sans)" }}
+        >
+          Salir
+        </button>
       </div>
 
       <style>{`
