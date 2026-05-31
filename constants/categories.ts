@@ -16,6 +16,7 @@ export const CAT_META: Record<string, CatMeta> = {
   "Educación":     { emoji: "📚", color: "#1D4ED8", bg: "#DBEAFE" },
   "Gastos hormiga":{ emoji: "🐜", color: "#B45309", bg: "#FEF3C7" },
   Tecnología:      { emoji: "💻", color: "#0369A1", bg: "#E0F2FE" },
+  Suscripciones:   { emoji: "🔄", color: "#0E7490", bg: "#CFFAFE" },
   General:         { emoji: "⚪", color: "#6B7280", bg: "#F3F4F6" },
   Salario:         { emoji: "💰", color: "#3B6D11", bg: "#EAF3DE" },
   Freelance:       { emoji: "🧑‍💻", color: "#1D4ED8", bg: "#DBEAFE" },
@@ -37,6 +38,7 @@ export const EXP_CATS = [
   "Educación",
   "Gastos hormiga",
   "Tecnología",
+  "Suscripciones",
 ] as const;
 
 export const INC_CATS = [
@@ -60,6 +62,7 @@ export const SUBCATS: Record<string, string[]> = {
   "Educación":     ["Curso", "Libro", "Universidad"],
   "Gastos hormiga":["Café", "Snack", "Recarga", "Parqueadero", "Propina"],
   Tecnología:      ["Celular", "Computador", "Tablet", "Accesorios", "Software", "Suscripciones"],
+  Suscripciones:   ["Streaming", "Música", "Software", "Juegos", "Noticias", "Fitness"],
 };
 
 export const SUBCAT_EMOJIS: Record<string, Record<string, string>> = {
@@ -74,6 +77,7 @@ export const SUBCAT_EMOJIS: Record<string, Record<string, string>> = {
   "Educación":     { Curso:"📖", Libro:"📚", Universidad:"🏫" },
   "Gastos hormiga":{ "Café":"☕", Snack:"🍪", Recarga:"📱", Parqueadero:"🅿️", Propina:"💝" },
   Tecnología:      { Celular:"📱", Computador:"💻", Tablet:"📲", Accesorios:"🖱️", Software:"⚙️", Suscripciones:"🔑" },
+  Suscripciones:   { Streaming:"📺", "Música":"🎵", Software:"💾", Juegos:"🎮", Noticias:"📰", Fitness:"🏃" },
 };
 
 export const PAYMENT_METHODS = ["Efectivo", "Visa Crédito", "Nu Crédito"] as const;
