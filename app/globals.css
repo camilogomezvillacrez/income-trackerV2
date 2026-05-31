@@ -1,0 +1,152 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* ── Design system tokens ───────────────────────────────── */
+:root {
+  --bg: #F7F8FA;
+  --white: #ffffff;
+  --border: #E2E4E9;
+  --text: #1B1F2E;
+  --muted: #4B5563;
+  --sub: #374151;
+
+  --green: #3B6D11;
+  --green-bg: #EAF3DE;
+  --red: #991B1B;
+  --red-bg: #FEE2E2;
+  --blue: #1D4ED8;
+  --blue-bg: #DBEAFE;
+  --purple: #5B21B6;
+  --purple-bg: #EDE9FE;
+  --amber: #B45309;
+  --amber-bg: #FEF3C7;
+
+  --sage: #4A7C59;
+
+  /* shadcn compatibility */
+  --background: var(--bg);
+  --foreground: var(--text);
+  --card: var(--white);
+  --card-foreground: var(--text);
+  --primary: var(--text);
+  --primary-foreground: #ffffff;
+  --secondary: var(--bg);
+  --secondary-foreground: var(--sub);
+  --muted-foreground: var(--muted);
+  --border-color: var(--border);
+  --ring: var(--text);
+  --radius: 0.625rem;
+}
+
+/* ── Tailwind v4 theme ──────────────────────────────────── */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-app-white: var(--white);
+  --color-border-app: var(--border);
+  --color-text-app: var(--text);
+  --color-muted: var(--muted);
+  --color-sub: var(--sub);
+
+  --color-income: var(--green);
+  --color-income-bg: var(--green-bg);
+  --color-expense: var(--red);
+  --color-expense-bg: var(--red-bg);
+  --color-balance: var(--blue);
+  --color-balance-bg: var(--blue-bg);
+  --color-savings: var(--purple);
+  --color-savings-bg: var(--purple-bg);
+  --color-amber: var(--amber);
+  --color-amber-bg: var(--amber-bg);
+  --color-sage: var(--sage);
+
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-mono: "Fira Code", "Fira Mono", monospace;
+
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 14px;
+}
+
+/* ── Base ────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  touch-action: manipulation;
+}
+
+html {
+  height: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Skeleton shimmer ────────────────────────────────────── */
+@keyframes sk-pulse {
+  0%, 100% { opacity: 0.35; }
+  50%       { opacity: 0.7;  }
+}
+.sk {
+  background: #E5E7EB;
+  border-radius: 6px;
+  animation: sk-pulse 1.4s ease-in-out infinite;
+}
+
+/* ── Count-up (aplicado vía JS) ─────────────────────────── */
+.font-numeric {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Toast ───────────────────────────────────────────────── */
+.toast-wrap {
+  position: fixed;
+  top: 64px;
+  right: 16px;
+  z-index: 600;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+.toast {
+  background: var(--text);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 10px 16px;
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0,0,0,.2);
+  transform: translateX(120%);
+  transition: transform 0.25s ease;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 260px;
+}
+.toast.show  { transform: translateX(0); }
+.toast.ok    { background: var(--green); }
+.toast.err   { background: var(--red);   }
+
+/* ── Swipe-to-delete ─────────────────────────────────────── */
+.tx-swipe-inner {
+  transition: transform 0.2s ease;
+}
+
+/* ── Mobile layout ───────────────────────────────────────── */
+@media (max-width: 768px) {
+  body {
+    height: 100dvh;
+    overflow: hidden;
+  }
+}

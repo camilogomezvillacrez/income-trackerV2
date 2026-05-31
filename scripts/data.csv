@@ -1,0 +1,31 @@
+Tipo;Fecha;Categoría;Subcategoría;Descripción;Monto;Método de Pago
+gasto;31/05/2026;Alimentación;Domicilio;Cena hamburguesa sábado;$ 33.000,00;Visa Crédito
+gasto;30/05/2026;Alimentación;Domicilio;Almuerzo hamburguesa;$ 21.000,00;Visa Crédito
+gasto;30/05/2026;Gastos hormiga;;Polar y smirnoff;$ 19.000,00;Efectivo
+ingreso;30/05/2026;Salario;;Segunda quincena vt mayo;$ 930.000,00;Efectivo
+gasto;29/05/2026;Gastos hormiga;Snack;Cola y pola;$ 11.600,00;Efectivo
+gasto;29/05/2026;Alimentación;Domicilio;Cena hamburguesa carulla;$ 13.450,00;Efectivo
+gasto;28/05/2026;Transporte;;;$ 100,00;Efectivo
+gasto;28/05/2026;Alimentación;Mercado;mercado para almuerzo doña Herminia;$ 62.000,00;Efectivo
+gasto;28/05/2026;General;;suscripción Amazon prime;$ 25.000,00;Efectivo
+gasto;28/05/2026;General;;Gemini pro;$ 80.000,00;Efectivo
+gasto;28/05/2026;Alimentación;Domicilio;domicilio bramante 22 de mayo;$ 36.400,00;Efectivo
+gasto;28/05/2026;Alimentación;Restaurante;mil cena domingo dedos pollo domicilio;$ 24.000,00;Efectivo
+gasto;28/05/2026;Alimentación;Restaurante;cena sábado salchipapa;$ 26.000,00;Efectivo
+gasto;28/05/2026;Alimentación;Mercado;mercado mayo segunda quincena;$ 151.000,00;Efectivo
+gasto;28/05/2026;Transporte;Uber;Uber cita médica;$ 10.000,00;Efectivo
+gasto;28/05/2026;Vivienda;Gas;gastos fijos;$ 120.000,00;Efectivo
+gasto;28/05/2026;General;;pizza comida 14 de mayo;$ 28.900,00;Efectivo
+gasto;28/05/2026;General;;comida Oxxo;$ 14.000,00;Efectivo
+ingreso;28/05/2026;General;;pago digitalización Johana;$ 900.000,00;Efectivo
+gasto;28/05/2026;Alimentación;Desayuno;avena desayuno;$ 4.300,00;Efectivo
+ingreso;28/05/2026;General;;ajuste ingreso quincena;$ 849.150,00;Efectivo
+gasto;28/05/2026;Alimentación;Domicilio;vive 100 Rappi card;$ 2.700,00;Efectivo
+ingreso;28/05/2026;Salario;;salario vt;$ 925.000,00;Efectivo
+gasto;28/05/2026;Transporte;Uber;Uber ida a cortar el pelo;$ 7.300,00;Efectivo
+ingreso;28/05/2026;General;;segunda quincena mayo;$ 850,00;Efectivo
+gasto;28/05/2026;General;;corte de pelo;$ 65.000,00;Efectivo
+ingreso;28/05/2026;General;;auxilio mayo;$ 300.000,00;Efectivo
+gasto;28/05/2026;Alimentación;Restaurante;cena perro caliente 10 de mayo;$ 3.200,00;Efectivo
+ingreso;28/05/2026;General;;prueba;$ 10.000,00;Efectivo
+gasto;28/05/2026;General;;prueba 2;$ 5.000,00;Efectivo
