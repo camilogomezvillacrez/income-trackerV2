@@ -13,6 +13,7 @@ import MovimientosView from "@/views/MovimientosView";
 import MetasView from "@/views/MetasView";
 import CategoriasView from "@/views/CategoriasView";
 import CategoriaDetailView from "@/views/CategoriaDetailView";
+import ConfiguracionView from "@/views/ConfiguracionView";
 
 import RegisterModal from "@/components/modals/RegisterModal";
 import EditModal from "@/components/modals/EditModal";
@@ -46,11 +47,12 @@ export default function DashboardShell({ userEmail }: { userEmail: string }) {
 
         {/* Main content */}
         <main className="shell-main">
-          {view === "resumen"     && <ResumenView />}
-          {view === "movimientos" && <MovimientosView />}
-          {view === "metas"       && <MetasView />}
-          {view === "cats"        && <CategoriasView />}
-          {isCatDetail            && <CategoriaDetailView catName={view.slice(4)} />}
+          {view === "resumen"       && <ResumenView />}
+          {view === "movimientos"   && <MovimientosView />}
+          {view === "metas"         && <MetasView />}
+          {view === "cats"          && <CategoriasView />}
+          {view === "configuracion" && <ConfiguracionView />}
+          {isCatDetail              && <CategoriaDetailView catName={view.slice(4)} />}
         </main>
       </div>
 

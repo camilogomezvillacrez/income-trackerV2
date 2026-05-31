@@ -150,9 +150,16 @@ export async function getDashboardData(month: string, userId: number): Promise<D
   const budgets: Record<string, number> = {};
   for (const r of budgetsRes.rows) budgets[String(r.category)] = toNum(r.amount);
 
+  // ── Savings target ───────────────────────────────────────────
+  const userRes = await db.execute(
+    "SELECT savings_target FROM users WHERE id=?",
+    [userId]
+  );
+  const savings_target = toNum(userRes.rows[0]?.savings_target ?? 20);
+
   return {
     monthly, by_category, by_cat_inc, recent, all_movs,
-    month_inc, month_exp, balance, tasa_ahorro,
+    month_inc, month_exp, balance, tasa_ahorro, savings_target,
     current_month, goals, all_months, budgets, weekly,
   };
 }

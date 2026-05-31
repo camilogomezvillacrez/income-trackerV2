@@ -1,24 +1,12 @@
 "use client";
 
 import { create } from "zustand";
-import type { DashboardData, ViewType, ModalType, Movement } from "@/types";
+import type { DashboardData, ViewType, ModalType, MovTab } from "@/types";
 import { currentMonth } from "@/lib/utils";
 
-interface EditTarget {
-  tipo: "ingreso" | "gasto";
-  id: number;
-}
-
-interface DeleteTarget {
-  tipo: "ingreso" | "gasto";
-  id: number;
-  desc: string;
-  amount: number;
-}
-
-interface AbonoTarget {
-  goalId: number;
-}
+interface EditTarget   { tipo: "ingreso" | "gasto"; id: number; }
+interface DeleteTarget { tipo: "ingreso" | "gasto"; id: number; desc: string; amount: number; }
+interface AbonoTarget  { goalId: number; }
 
 interface DashboardStore {
   data: DashboardData | null;
@@ -30,9 +18,12 @@ interface DashboardStore {
   deleteTarget: DeleteTarget | null;
   abonoTarget: AbonoTarget | null;
   userEmail: string;
+  movTab: MovTab;
 
   setUserEmail: (e: string) => void;
   setView: (v: ViewType) => void;
+  setMovTab: (t: MovTab) => void;
+  navigateMovimientos: (tab: MovTab) => void;
   openModal: (m: ModalType) => void;
   closeModal: () => void;
   setEditTarget: (t: EditTarget | null) => void;
@@ -54,9 +45,12 @@ export const useDashboardStore = create<DashboardStore>((set, get) => ({
   deleteTarget: null,
   abonoTarget: null,
   userEmail: "",
+  movTab: "todos",
 
   setUserEmail: (e) => set({ userEmail: e }),
   setView: (v) => set({ view: v }),
+  setMovTab: (t) => set({ movTab: t }),
+  navigateMovimientos: (tab) => set({ view: "movimientos", movTab: tab }),
   openModal: (m) => set({ modal: m }),
   closeModal: () => set({ modal: null, editTarget: null, deleteTarget: null, abonoTarget: null }),
   setEditTarget: (t) => set({ editTarget: t }),
@@ -76,21 +70,14 @@ export const useDashboardStore = create<DashboardStore>((set, get) => ({
   },
 }));
 
-// ── Toast store (simple) ──────────────────────────────────────────
-interface Toast {
-  id: number;
-  msg: string;
-  type: "ok" | "err";
-}
-
+// ── Toast store ───────────────────────────────────────────────────
+interface Toast { id: number; msg: string; type: "ok" | "err"; }
 interface ToastStore {
   toasts: Toast[];
   show: (msg: string, type?: "ok" | "err") => void;
   remove: (id: number) => void;
 }
-
 let _tid = 0;
-
 export const useToastStore = create<ToastStore>((set) => ({
   toasts: [],
   show: (msg, type = "ok") => {

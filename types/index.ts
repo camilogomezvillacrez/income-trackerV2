@@ -45,6 +45,7 @@ export interface DashboardData {
   month_exp: number;
   balance: number;
   tasa_ahorro: number;
+  savings_target: number;
   current_month: string;
   goals: Goal[];
   all_months: string[];
@@ -57,6 +58,7 @@ export type ViewType =
   | "movimientos"
   | "metas"
   | "cats"
+  | "configuracion"
   | `cat-${string}`;
 
 export type ModalType =
@@ -66,3 +68,5 @@ export type ModalType =
   | "meta"
   | "abono"
   | null;
+
+export type MovTab = "todos" | "ingreso" | "gasto";
