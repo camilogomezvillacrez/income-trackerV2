@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Settings, Target } from "lucide-react";
+import { Settings, Target, FileText } from "lucide-react";
 import { useDashboardStore, useToastStore } from "@/store/dashboardStore";
 
 export default function ConfiguracionView() {
-  const { data, refresh } = useDashboardStore();
+  const { data, refresh, activeMonth, openReport } = useDashboardStore();
   const toast = useToastStore((s) => s.show);
 
   const currentTarget = data?.savings_target ?? 20;
@@ -93,6 +93,30 @@ export default function ConfiguracionView() {
             </button>
           ))}
         </div>
+      </div>
+
+      {/* Informe mensual */}
+      <div style={{ background: "var(--white)", border: "1px solid var(--border)", borderRadius: "10px", padding: "20px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px" }}>
+          <FileText size={16} color="var(--blue)" />
+          <span style={{ fontSize: "14px", fontWeight: 600, color: "var(--text)" }}>Informe mensual</span>
+        </div>
+        <p style={{ fontSize: "12px", color: "var(--muted)", marginBottom: "16px", lineHeight: 1.6 }}>
+          Genera un resumen visual de ingresos, gastos, categorías y metas del mes seleccionado. Puedes descargarlo como PDF.
+        </p>
+        <button
+          onClick={() => openReport(activeMonth)}
+          style={{
+            display: "flex", alignItems: "center", gap: "8px",
+            background: "var(--blue)", color: "#fff", border: "none",
+            borderRadius: "8px", padding: "10px 18px", fontSize: "13px",
+            fontWeight: 600, cursor: "pointer", fontFamily: "var(--font-sans)",
+            width: "100%", justifyContent: "center",
+          }}
+        >
+          <FileText size={15} />
+          Generar informe de {new Date(Number(activeMonth.split("-")[0]), Number(activeMonth.split("-")[1]) - 1, 1).toLocaleDateString("es-CO", { month: "long", year: "numeric" })}
+        </button>
       </div>
     </div>
   );

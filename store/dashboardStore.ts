@@ -21,11 +21,14 @@ interface DashboardStore {
   movTab: MovTab;
   privacyMode: boolean;
   lastKnownMonth: string;
+  reportMonth: string | null;
 
   setUserEmail: (e: string) => void;
   setView: (v: ViewType) => void;
   setMovTab: (t: MovTab) => void;
   togglePrivacy: () => void;
+  openReport: (month: string) => void;
+  closeReport: () => void;
   navigateMovimientos: (tab: MovTab) => void;
   openModal: (m: ModalType) => void;
   closeModal: () => void;
@@ -51,8 +54,11 @@ export const useDashboardStore = create<DashboardStore>((set, get) => ({
   movTab: "todos",
   privacyMode: false,
   lastKnownMonth: currentMonth(),
+  reportMonth: null,
 
   setUserEmail: (e) => set({ userEmail: e }),
+  openReport: (month) => set({ reportMonth: month }),
+  closeReport: () => set({ reportMonth: null }),
   setView: (v) => set({ view: v }),
   setMovTab: (t) => set({ movTab: t }),
   togglePrivacy: () => set((s) => ({ privacyMode: !s.privacyMode })),

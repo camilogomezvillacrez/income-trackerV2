@@ -20,6 +20,7 @@ import EditModal from "@/components/modals/EditModal";
 import DeleteModal from "@/components/modals/DeleteModal";
 import GoalModal from "@/components/modals/GoalModal";
 import AbonoModal from "@/components/modals/AbonoModal";
+import MonthReportModal from "@/components/modals/MonthReportModal";
 
 import { useEffect } from "react";
 
@@ -30,7 +31,7 @@ export default function DashboardShell({ userEmail }: { userEmail: string }) {
 
   useDashboard();
 
-  const { view, modal, openModal } = useDashboardStore();
+  const { view, modal, openModal, reportMonth } = useDashboardStore();
 
   const isCatDetail = view.startsWith("cat-");
   const showFab = view === "resumen" || view === "movimientos";
@@ -80,6 +81,7 @@ export default function DashboardShell({ userEmail }: { userEmail: string }) {
       {modal === "del"      && <DeleteModal />}
       {modal === "meta"     && <GoalModal />}
       {modal === "abono"    && <AbonoModal />}
+      {reportMonth          && <MonthReportModal month={reportMonth} />}
 
       <ToastContainer />
 
