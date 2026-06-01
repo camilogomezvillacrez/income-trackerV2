@@ -18,7 +18,12 @@ export async function getDashboardData(month: string, userId: number): Promise<D
   `, [userId, userId]);
   const all_months: string[] = allMonthsRes.rows.map((r) => String(r.m));
 
-  const current_month = all_months.includes(month) ? month : (all_months[0] ?? month);
+  // Siempre incluir el mes calendario actual aunque no tenga transacciones
+  const calendarMonth = new Date().toISOString().slice(0, 7);
+  if (!all_months.includes(calendarMonth)) all_months.unshift(calendarMonth);
+
+  // Siempre usar el mes pedido — nunca hacer fallback a otro mes
+  const current_month = month;
 
   // ── Monthly totals (last 6 months) ──────────────────────────
   const monthlyRes = await db.execute(`

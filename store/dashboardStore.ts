@@ -20,6 +20,7 @@ interface DashboardStore {
   userEmail: string;
   movTab: MovTab;
   privacyMode: boolean;
+  lastKnownMonth: string;
 
   setUserEmail: (e: string) => void;
   setView: (v: ViewType) => void;
@@ -49,6 +50,7 @@ export const useDashboardStore = create<DashboardStore>((set, get) => ({
   userEmail: "",
   movTab: "todos",
   privacyMode: false,
+  lastKnownMonth: currentMonth(),
 
   setUserEmail: (e) => set({ userEmail: e }),
   setView: (v) => set({ view: v }),
@@ -70,7 +72,8 @@ export const useDashboardStore = create<DashboardStore>((set, get) => ({
     const res = await fetch(`/api/dashboard?month=${month}`);
     if (res.status === 401) { window.location.href = "/login"; return; }
     const data: DashboardData = await res.json();
-    set({ data, loading: false, activeMonth: data.current_month });
+    // No sobreescribir activeMonth — el usuario controla qué mes ve
+    set({ data, loading: false });
   },
 }));
 
