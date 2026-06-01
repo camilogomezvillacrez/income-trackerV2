@@ -41,11 +41,13 @@ interface KPICardProps {
 function KPICard({ label, value, borderColor, valueColor, emoji, sub, subColor, isPct, onClick }: KPICardProps) {
   const valRef = useRef<HTMLDivElement>(null);
 
+  const privacy = useDashboardStore((s) => s.privacyMode);
+
   useEffect(() => {
-    if (!valRef.current) return;
+    if (!valRef.current || privacy) return;
     if (isPct) countUpPct(valRef.current, value);
     else countUp(valRef.current, Math.abs(value));
-  }, [value]);
+  }, [value, privacy]);
 
   return (
     <div
@@ -66,8 +68,11 @@ function KPICard({ label, value, borderColor, valueColor, emoji, sub, subColor, 
         <span style={{ fontSize: "10px", color: "var(--muted)", fontWeight: 500 }}>{label}</span>
         <span style={{ fontSize: "22px", lineHeight: 1 }}>{emoji}</span>
       </div>
-      <div ref={valRef} style={{ fontSize: "18px", fontWeight: 600, color: valueColor, fontFamily: "var(--font-mono)", fontVariantNumeric: "tabular-nums" }}>
-        {isPct ? "0.0%" : "$0"}
+      <div
+        ref={valRef}
+        style={{ fontSize: "18px", fontWeight: 600, color: valueColor, fontFamily: "var(--font-mono)", fontVariantNumeric: "tabular-nums", letterSpacing: privacy ? "0.08em" : undefined }}
+      >
+        {privacy ? (isPct ? "••••" : "••••••") : (isPct ? "0.0%" : "$0")}
       </div>
       {sub && <div style={{ fontSize: "10px", color: subColor ?? "var(--muted)", marginTop: "2px" }}>{sub}</div>}
     </div>

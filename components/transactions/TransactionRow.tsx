@@ -3,8 +3,8 @@
 import { Pencil, Trash2 } from "lucide-react";
 import type { Movement } from "@/types";
 import { CAT_META } from "@/constants/categories";
-import { fmt } from "@/lib/utils";
 import { useDashboardStore } from "@/store/dashboardStore";
+import Money from "@/components/common/Money";
 import { useRef } from "react";
 
 interface Props { r: Movement; }
@@ -97,9 +97,12 @@ export default function TransactionRow({ r }: Props) {
         </div>
 
         <div style={{ display: "flex", alignItems: "center" }}>
-          <span style={{ fontSize: "12px", fontWeight: 600, color, fontFamily: "var(--font-mono)", fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap", flexShrink: 0 }}>
-            {isInc ? "+" : "-"}{fmt(r.amount)}
-          </span>
+          <Money
+            value={r.amount}
+            prefix={isInc ? "+" : "-"}
+            color={color}
+            style={{ fontSize: "12px", fontWeight: 600, whiteSpace: "nowrap", flexShrink: 0 }}
+          />
           <div style={{ display: "flex", alignItems: "center", gap: "1px", marginLeft: "6px" }}>
             <button onClick={handleEdit}   style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", padding: "4px 5px", borderRadius: "5px" }} title="Editar"><Pencil size={13} /></button>
             <button onClick={handleDelete} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", padding: "4px 5px", borderRadius: "5px" }} title="Eliminar"><Trash2 size={13} /></button>

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, Fira_Code } from "next/font/google";
 import "./globals.css";
 
@@ -19,6 +19,13 @@ const firaCode = Fira_Code({
 export const metadata: Metadata = {
   title: "Mis Finanzas",
   description: "Dashboard de finanzas personales",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({

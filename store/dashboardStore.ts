@@ -19,10 +19,12 @@ interface DashboardStore {
   abonoTarget: AbonoTarget | null;
   userEmail: string;
   movTab: MovTab;
+  privacyMode: boolean;
 
   setUserEmail: (e: string) => void;
   setView: (v: ViewType) => void;
   setMovTab: (t: MovTab) => void;
+  togglePrivacy: () => void;
   navigateMovimientos: (tab: MovTab) => void;
   openModal: (m: ModalType) => void;
   closeModal: () => void;
@@ -46,10 +48,12 @@ export const useDashboardStore = create<DashboardStore>((set, get) => ({
   abonoTarget: null,
   userEmail: "",
   movTab: "todos",
+  privacyMode: false,
 
   setUserEmail: (e) => set({ userEmail: e }),
   setView: (v) => set({ view: v }),
   setMovTab: (t) => set({ movTab: t }),
+  togglePrivacy: () => set((s) => ({ privacyMode: !s.privacyMode })),
   navigateMovimientos: (tab) => set({ view: "movimientos", movTab: tab }),
   openModal: (m) => set({ modal: m }),
   closeModal: () => set({ modal: null, editTarget: null, deleteTarget: null, abonoTarget: null }),

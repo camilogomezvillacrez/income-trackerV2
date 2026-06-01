@@ -1,11 +1,11 @@
 "use client";
 
-import { PieChart } from "lucide-react";
+import { PieChart, Eye, EyeOff } from "lucide-react";
 import MonthNav from "./MonthNav";
 import { useDashboardStore } from "@/store/dashboardStore";
 
 export default function Navbar() {
-  const { openModal, userEmail, view, setView } = useDashboardStore();
+  const { openModal, userEmail, view, setView, privacyMode, togglePrivacy } = useDashboardStore();
 
   const initials = userEmail
     ? userEmail.split("@")[0].slice(0, 2).toUpperCase()
@@ -43,6 +43,15 @@ export default function Navbar() {
 
       <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
         <MonthNav />
+
+        {/* Ocultar valores */}
+        <button
+          onClick={togglePrivacy}
+          title={privacyMode ? "Mostrar valores" : "Ocultar valores"}
+          style={{ background: "none", border: "none", cursor: "pointer", color: privacyMode ? "var(--text)" : "var(--muted)", display: "flex", alignItems: "center", padding: "4px", borderRadius: "7px" }}
+        >
+          {privacyMode ? <EyeOff size={17} /> : <Eye size={17} />}
+        </button>
 
         {/* Registrar — solo desktop */}
         <button

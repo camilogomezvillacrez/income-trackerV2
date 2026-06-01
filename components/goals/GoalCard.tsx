@@ -2,9 +2,8 @@
 
 import { Trash2 } from "lucide-react";
 import type { Goal } from "@/types";
-import { fmt } from "@/lib/utils";
-import { useDashboardStore } from "@/store/dashboardStore";
-import { useToastStore } from "@/store/dashboardStore";
+import { useDashboardStore, useToastStore } from "@/store/dashboardStore";
+import Money from "@/components/common/Money";
 
 interface Props {
   goal: Goal;
@@ -82,19 +81,10 @@ export default function GoalCard({ goal }: Props) {
         />
       </div>
 
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          fontSize: "10px",
-          color: "var(--muted)",
-          fontFamily: "var(--font-mono)",
-          fontVariantNumeric: "tabular-nums",
-        }}
-      >
-        <span>{fmt(goal.saved)} ahorrados</span>
+      <div style={{ display: "flex", justifyContent: "space-between", fontSize: "10px", color: "var(--muted)" }}>
+        <span><Money value={goal.saved} style={{ fontSize: "10px" }} /> ahorrados</span>
         <span style={{ fontWeight: 600, color: "var(--blue)" }}>{goal.pct}%</span>
-        <span>Meta: {fmt(goal.target)}</span>
+        <span>Meta: <Money value={goal.target} style={{ fontSize: "10px" }} /></span>
       </div>
 
       {!goal.completed && (
