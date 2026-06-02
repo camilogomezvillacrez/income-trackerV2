@@ -1,6 +1,6 @@
 "use client";
 
-import { PieChart, Eye, EyeOff } from "lucide-react";
+import { PieChart, Eye, EyeOff, LogOut } from "lucide-react";
 import MonthNav from "./MonthNav";
 import { useDashboardStore } from "@/store/dashboardStore";
 
@@ -82,9 +82,10 @@ export default function Navbar() {
 
         <button
           onClick={handleLogout}
-          style={{ background: "none", color: "var(--muted)", fontSize: "12px", padding: "6px 10px", borderRadius: "7px", border: "1px solid var(--border)", cursor: "pointer", fontFamily: "var(--font-sans)" }}
+          title="Cerrar sesión"
+          style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", display: "flex", alignItems: "center", padding: "6px", borderRadius: "7px" }}
         >
-          Salir
+          <LogOut size={17} />
         </button>
       </div>
 

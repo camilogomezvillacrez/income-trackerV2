@@ -11,10 +11,11 @@ interface BnItem {
 }
 
 const ITEMS: BnItem[] = [
-  { emoji: "🏠", label: "Resumen",      view: "resumen",      id: "bn-resumen" },
-  { emoji: "↔️",  label: "Movimientos", view: "movimientos",  id: "bn-mov"     },
-  { emoji: "🎯", label: "Metas",        view: "metas",        id: "bn-metas"   },
-  { emoji: "📂", label: "Categorías",   view: "cats",         id: "bn-cats"    },
+  { emoji: "🏠", label: "Resumen",      view: "resumen",        id: "bn-resumen" },
+  { emoji: "↔️",  label: "Movimientos", view: "movimientos",    id: "bn-mov"     },
+  { emoji: "🎯", label: "Metas",        view: "metas",          id: "bn-metas"   },
+  { emoji: "📂", label: "Categorías",   view: "cats",           id: "bn-cats"    },
+  { emoji: "⚙️", label: "Config",       view: "configuracion",  id: "bn-config"  },
 ];
 
 export default function BottomNav() {
@@ -34,7 +35,7 @@ export default function BottomNav() {
       }}
     >
       {ITEMS.map((item) => {
-        const active = view === item.view || (item.view === "cats" && view.startsWith("cat-"));
+        const active = view === item.view || (item.view === "cats" && view.startsWith("cat-")) || (item.view === "configuracion" && view === "configuracion");
         return (
           <button
             key={item.id}

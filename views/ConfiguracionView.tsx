@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Settings, Target, FileText } from "lucide-react";
+import { Settings, Target, FileText, ArrowLeft } from "lucide-react";
 import { useDashboardStore, useToastStore } from "@/store/dashboardStore";
 
 export default function ConfiguracionView() {
-  const { data, refresh, activeMonth, openReport } = useDashboardStore();
+  const { data, refresh, activeMonth, openReport, setView } = useDashboardStore();
   const toast = useToastStore((s) => s.show);
 
   const currentTarget = data?.savings_target ?? 20;
@@ -29,6 +29,16 @@ export default function ConfiguracionView() {
   return (
     <div style={{ maxWidth: "480px" }}>
       <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "20px" }}>
+        <button
+          onClick={() => setView("resumen")}
+          className="config-back-btn"
+          aria-label="Volver al inicio"
+          style={{ display: "flex", alignItems: "center", gap: "6px", background: "none", border: "none", cursor: "pointer", color: "var(--muted)", padding: "4px 0", fontFamily: "var(--font-sans)", fontSize: "13px", fontWeight: 500 }}
+        >
+          <ArrowLeft size={16} />
+          <span>Inicio</span>
+        </button>
+        <div style={{ width: "1px", height: "16px", background: "var(--border)" }} />
         <Settings size={20} color="var(--muted)" />
         <h2 style={{ fontSize: "16px", fontWeight: 600, color: "var(--text)" }}>Configuración</h2>
       </div>
