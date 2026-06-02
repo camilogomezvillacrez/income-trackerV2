@@ -31,12 +31,10 @@ export default function ConfiguracionView() {
       <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "20px" }}>
         <button
           onClick={() => setView("resumen")}
-          className="config-back-btn"
           aria-label="Volver al inicio"
-          style={{ display: "flex", alignItems: "center", gap: "6px", background: "none", border: "none", cursor: "pointer", color: "var(--muted)", padding: "4px 0", fontFamily: "var(--font-sans)", fontSize: "13px", fontWeight: 500 }}
+          style={{ display: "flex", alignItems: "center", background: "none", border: "none", cursor: "pointer", color: "var(--muted)", padding: "4px" }}
         >
-          <ArrowLeft size={16} />
-          <span>Inicio</span>
+          <ArrowLeft size={18} />
         </button>
         <div style={{ width: "1px", height: "16px", background: "var(--border)" }} />
         <Settings size={20} color="var(--muted)" />

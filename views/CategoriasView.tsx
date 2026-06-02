@@ -9,60 +9,108 @@ export default function CategoriasView() {
   const { data, setView } = useDashboardStore();
 
   return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(2, 1fr)",
-        gap: "10px",
-      }}
-    >
-      {EXP_CATS.map((name) => {
-        const m = CAT_META[name];
-        const cat = data?.by_category.find((c) => c.category === name);
-        const total = cat ? `${fmt(cat.total)} este mes` : "Sin gastos este mes";
-        const catView: ViewType = `cat-${name}`;
+    <>
+      <div className="cats-grid">
+        {EXP_CATS.map((name) => {
+          const m = CAT_META[name];
+          const cat = data?.by_category.find((c) => c.category === name);
+          const total = cat ? `${fmt(cat.total)} este mes` : "Sin gastos este mes";
+          const catView: ViewType = `cat-${name}`;
 
-        return (
-          <button
-            key={name}
-            onClick={() => setView(catView)}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "12px",
-              padding: "14px",
-              background: "var(--white)",
-              border: "1px solid var(--border)",
-              borderRadius: "12px",
-              cursor: "pointer",
-              fontFamily: "var(--font-sans)",
-              textAlign: "left",
-              transition: "background 0.15s",
-            }}
-          >
-            <span
-              style={{
-                fontSize: "28px",
-                lineHeight: 1,
-                flexShrink: 0,
-                background: m.bg,
-                padding: "8px",
-                borderRadius: "10px",
-              }}
+          return (
+            <button
+              key={name}
+              onClick={() => setView(catView)}
+              className="cat-card"
             >
-              {m.emoji}
-            </span>
-            <span>
-              <span style={{ fontSize: "13px", fontWeight: 600, color: "var(--text)", display: "block" }}>
-                {name}
+              <span className="cat-icon" style={{ background: m.bg }}>
+                {m.emoji}
               </span>
-              <span style={{ fontSize: "10px", color: "var(--muted)", marginTop: "2px", display: "block" }}>
-                {total}
+              <span className="cat-text">
+                <span className="cat-name">{name}</span>
+                <span className="cat-amount">{total}</span>
               </span>
-            </span>
-          </button>
-        );
-      })}
-    </div>
+            </button>
+          );
+        })}
+      </div>
+
+      <style>{`
+        .cats-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: clamp(6px, 2vw, 12px);
+        }
+
+        .cat-card {
+          display: flex;
+          align-items: center;
+          gap: clamp(8px, 2vw, 12px);
+          padding: clamp(10px, 2.5vw, 14px);
+          background: var(--white);
+          border: 1px solid var(--border);
+          border-radius: 12px;
+          cursor: pointer;
+          font-family: var(--font-sans);
+          text-align: left;
+          transition: background 0.15s;
+          min-width: 0;
+        }
+
+        .cat-card:active {
+          background: var(--bg);
+        }
+
+        .cat-icon {
+          font-size: clamp(20px, 5vw, 28px);
+          line-height: 1;
+          flex-shrink: 0;
+          padding: clamp(6px, 1.5vw, 8px);
+          border-radius: 10px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .cat-text {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+          min-width: 0;
+          flex: 1;
+        }
+
+        .cat-name {
+          font-size: clamp(11px, 3vw, 13px);
+          font-weight: 600;
+          color: var(--text);
+          display: block;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .cat-amount {
+          font-size: clamp(9px, 2.5vw, 11px);
+          color: var(--muted);
+          display: block;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        @media (max-width: 360px) {
+          .cats-grid {
+            grid-template-columns: 1fr;
+          }
+        }
+
+        @media (min-width: 600px) {
+          .cats-grid {
+            grid-template-columns: repeat(3, 1fr);
+          }
+        }
+      `}</style>
+    </>
   );
 }
