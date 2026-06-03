@@ -89,13 +89,28 @@ export default function MonthReportModal({ month }: { month: string }) {
         import("html2canvas"),
         import("jspdf"),
       ]);
-      const canvas = await html2canvas(reportRef.current, {
+
+      // Clone outside the scrollable modal so html2canvas captures the full height
+      const clone = reportRef.current.cloneNode(true) as HTMLElement;
+      clone.style.position = "fixed";
+      clone.style.top = "-99999px";
+      clone.style.left = "0";
+      clone.style.width = reportRef.current.offsetWidth + "px";
+      clone.style.height = "auto";
+      clone.style.overflow = "visible";
+      clone.style.zIndex = "-1";
+      document.body.appendChild(clone);
+
+      const canvas = await html2canvas(clone, {
         scale: 2,
         useCORS: true,
         backgroundColor: "#ffffff",
       });
+
+      document.body.removeChild(clone);
+
       const imgData = canvas.toDataURL("image/png");
-      const pdfW = 210; // A4 width mm
+      const pdfW = 210;
       const pdfH = (canvas.height * pdfW) / canvas.width;
       const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: [pdfW, pdfH] });
       pdf.addImage(imgData, "PNG", 0, 0, pdfW, pdfH);
