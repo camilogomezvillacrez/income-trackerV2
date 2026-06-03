@@ -95,9 +95,9 @@ export default function MonthReportModal({ month }: { month: string }) {
         backgroundColor: "#ffffff",
       });
       const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-      const pdfW = pdf.internal.pageSize.getWidth();
+      const pdfW = 210; // A4 width mm
       const pdfH = (canvas.height * pdfW) / canvas.width;
+      const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: [pdfW, pdfH] });
       pdf.addImage(imgData, "PNG", 0, 0, pdfW, pdfH);
       pdf.save(`informe-${month}.pdf`);
     } finally {
