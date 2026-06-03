@@ -48,7 +48,7 @@ function CircleProgress({ pct, tasaOk }: { pct: number; tasaOk: boolean }) {
   const color = tasaOk ? "#1D9E75" : "#DC2626";
   return (
     <svg width="120" height="120" style={{ transform: "rotate(-90deg)" }}>
-      <circle cx="60" cy="60" r={r} fill="none" stroke="#F3F4F6" strokeWidth="10" />
+      <circle cx="60" cy="60" r={r} fill="none" stroke="#E5E7EB" strokeWidth="10" />
       <circle
         cx="60" cy="60" r={r}
         fill="none"
@@ -64,6 +64,20 @@ function CircleProgress({ pct, tasaOk }: { pct: number; tasaOk: boolean }) {
 }
 
 const GREEN = "#4A7C59";
+
+// Label de sección — visible en pantalla y en PDF
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <div style={{
+      fontSize: "11px", fontWeight: 600, color: "#4B5563",
+      textTransform: "uppercase", letterSpacing: "0.09em",
+      marginBottom: "16px", paddingBottom: "8px",
+      borderBottom: "1px solid #F3F4F6",
+    }}>
+      {children}
+    </div>
+  );
+}
 
 export default function MonthReportModal({ month }: { month: string }) {
   const closeReport = useDashboardStore((s) => s.closeReport);
@@ -90,24 +104,22 @@ export default function MonthReportModal({ month }: { month: string }) {
         import("jspdf"),
       ]);
 
-      // Clone outside the scrollable modal so html2canvas captures the full height
-      const clone = reportRef.current.cloneNode(true) as HTMLElement;
-      clone.style.position = "fixed";
-      clone.style.top = "-99999px";
-      clone.style.left = "0";
-      clone.style.width = reportRef.current.offsetWidth + "px";
-      clone.style.height = "auto";
-      clone.style.overflow = "visible";
-      clone.style.zIndex = "-1";
-      document.body.appendChild(clone);
+      // Wrap clone in a white full-width container so margins are correct in PDF
+      const wrapper = document.createElement("div");
+      wrapper.style.cssText = "position:fixed;top:-99999px;left:0;width:520px;background:#f9fafb;padding:28px;box-sizing:border-box;";
 
-      const canvas = await html2canvas(clone, {
+      const clone = reportRef.current.cloneNode(true) as HTMLElement;
+      clone.style.cssText = "width:100%;height:auto;overflow:visible;";
+      wrapper.appendChild(clone);
+      document.body.appendChild(wrapper);
+
+      const canvas = await html2canvas(wrapper, {
         scale: 2,
         useCORS: true,
-        backgroundColor: "#ffffff",
+        backgroundColor: "#f9fafb",
       });
 
-      document.body.removeChild(clone);
+      document.body.removeChild(wrapper);
 
       const imgData = canvas.toDataURL("image/png");
       const pdfW = 210;
@@ -136,15 +148,15 @@ export default function MonthReportModal({ month }: { month: string }) {
       }}
     >
       <div style={{
-        background: "#fff", borderRadius: "20px", width: "100%",
+        background: "#f9fafb", borderRadius: "20px", width: "100%",
         maxWidth: "520px", maxHeight: "92vh", overflowY: "auto",
         position: "relative",
       }}>
         {/* Sticky header — not part of export */}
         <div style={{
           display: "flex", alignItems: "center", justifyContent: "space-between",
-          padding: "16px 20px 12px", borderBottom: "0.5px solid #E5E7EB",
-          position: "sticky", top: 0, background: "#fff", zIndex: 10,
+          padding: "16px 20px 12px", borderBottom: "1px solid #E5E7EB",
+          position: "sticky", top: 0, background: "#f9fafb", zIndex: 10,
           borderRadius: "20px 20px 0 0",
         }}>
           <div>
@@ -181,7 +193,7 @@ export default function MonthReportModal({ month }: { month: string }) {
         </div>
 
         {/* Exportable content */}
-        <div ref={reportRef} style={{ padding: "20px", background: "#fff" }}>
+        <div ref={reportRef} style={{ padding: "20px", background: "#f9fafb", display: "flex", flexDirection: "column", gap: "12px" }}>
           {loading ? (
             <div style={{ textAlign: "center", padding: "60px 0", color: "#9CA3AF", fontSize: "13px" }}>
               Cargando informe...
@@ -191,12 +203,12 @@ export default function MonthReportModal({ month }: { month: string }) {
               {/* ── HERO ────────────────────────────────────────── */}
               <div style={{
                 background: GREEN, borderRadius: "18px",
-                padding: "24px 22px", marginBottom: "14px", color: "#fff",
+                padding: "26px 24px", color: "#fff",
               }}>
-                <div style={{ fontSize: "10px", fontWeight: 500, opacity: 0.75, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "8px" }}>
+                <div style={{ fontSize: "11px", fontWeight: 500, opacity: 0.8, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "10px" }}>
                   Balance {monthName(month)}
                 </div>
-                <div style={{ fontSize: "34px", fontWeight: 500, fontFamily: "var(--font-mono)", marginBottom: "16px", letterSpacing: "-0.02em" }}>
+                <div style={{ fontSize: "36px", fontWeight: 500, fontFamily: "var(--font-mono)", marginBottom: "18px", letterSpacing: "-0.02em" }}>
                   {fmt(data.balance)}
                 </div>
                 <div style={{ display: "flex", gap: "10px" }}>
@@ -206,12 +218,12 @@ export default function MonthReportModal({ month }: { month: string }) {
                   ].map((p) => (
                     <div key={p.label} style={{
                       background: "rgba(255,255,255,0.18)", borderRadius: "12px",
-                      padding: "8px 14px", flex: 1,
+                      padding: "10px 16px", flex: 1,
                     }}>
-                      <div style={{ fontSize: "9px", fontWeight: 500, opacity: 0.8, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "4px" }}>
+                      <div style={{ fontSize: "10px", fontWeight: 500, opacity: 0.85, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "5px" }}>
                         {p.label}
                       </div>
-                      <div style={{ fontSize: "14px", fontWeight: 500, fontFamily: "var(--font-mono)" }}>
+                      <div style={{ fontSize: "15px", fontWeight: 500, fontFamily: "var(--font-mono)" }}>
                         {fmt(p.value)}
                       </div>
                     </div>
@@ -222,8 +234,8 @@ export default function MonthReportModal({ month }: { month: string }) {
               {/* ── AHORRO ──────────────────────────────────────── */}
               <div style={{
                 background: "#fff",
-                border: `0.5px solid ${tasaOk ? "#BBF7D0" : "#FECACA"}`,
-                borderRadius: "18px", padding: "20px 22px", marginBottom: "14px",
+                border: `1px solid ${tasaOk ? "#BBF7D0" : "#FECACA"}`,
+                borderRadius: "18px", padding: "22px 24px",
                 display: "flex", alignItems: "center", gap: "20px",
               }}>
                 <div style={{ position: "relative", flexShrink: 0, width: "120px", height: "120px" }}>
@@ -233,10 +245,10 @@ export default function MonthReportModal({ month }: { month: string }) {
                     display: "flex", flexDirection: "column",
                     alignItems: "center", justifyContent: "center",
                   }}>
-                    <span style={{ fontSize: "18px", fontWeight: 500, color: "#111827", fontFamily: "var(--font-mono)" }}>
+                    <span style={{ fontSize: "20px", fontWeight: 500, color: "#111827", fontFamily: "var(--font-mono)" }}>
                       {data.tasa_ahorro.toFixed(0)}%
                     </span>
-                    <span style={{ fontSize: "9px", color: "#9CA3AF", marginTop: "2px" }}>ahorro</span>
+                    <span style={{ fontSize: "10px", color: "#6B7280", marginTop: "2px" }}>ahorro</span>
                   </div>
                 </div>
                 <div style={{ flex: 1 }}>
@@ -244,15 +256,15 @@ export default function MonthReportModal({ month }: { month: string }) {
                     display: "inline-block",
                     background: tasaOk ? "#DCFCE7" : "#FEE2E2",
                     color: tasaOk ? "#166534" : "#991B1B",
-                    fontSize: "10px", fontWeight: 500,
-                    padding: "3px 10px", borderRadius: "20px", marginBottom: "12px",
+                    fontSize: "11px", fontWeight: 600,
+                    padding: "4px 12px", borderRadius: "20px", marginBottom: "14px",
                   }}>
-                    {tasaOk ? "Meta de ahorro lograda" : "Meta de ahorro no lograda"}
+                    {tasaOk ? "✓ Meta de ahorro lograda" : "✗ Meta de ahorro no lograda"}
                   </span>
-                  <div style={{ fontSize: "13px", color: "#374151", fontWeight: 400, marginBottom: "4px" }}>
+                  <div style={{ fontSize: "13px", color: "#374151", fontWeight: 400, marginBottom: "6px" }}>
                     Tasa de ahorro: <strong style={{ fontFamily: "var(--font-mono)" }}>{data.tasa_ahorro.toFixed(1)}%</strong>
                   </div>
-                  <div style={{ fontSize: "12px", color: "#9CA3AF" }}>
+                  <div style={{ fontSize: "12px", color: "#6B7280" }}>
                     {tasaOk
                       ? `Superaste la meta por ${(data.tasa_ahorro - (data.savings_target ?? 20)).toFixed(1)} puntos`
                       : `Faltaron ${((data.savings_target ?? 20) - data.tasa_ahorro).toFixed(1)} puntos para la meta de ${data.savings_target}%`}
@@ -263,31 +275,29 @@ export default function MonthReportModal({ month }: { month: string }) {
               {/* ── GASTOS POR CATEGORÍA ────────────────────────── */}
               {topCats.length > 0 && (
                 <div style={{
-                  background: "#fff", border: "0.5px solid #E5E7EB",
-                  borderRadius: "18px", padding: "20px 22px", marginBottom: "14px",
+                  background: "#fff", border: "1px solid #E5E7EB",
+                  borderRadius: "18px", padding: "22px 24px",
                 }}>
-                  <div style={{ fontSize: "9px", fontWeight: 500, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "16px" }}>
-                    Gastos por categoría
-                  </div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+                  <SectionLabel>Gastos por categoría</SectionLabel>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
                     {topCats.map((c) => {
                       const pct = data.month_exp > 0 ? Math.round((c.total / data.month_exp) * 100) : 0;
                       const color = getCatColor(c.category);
                       return (
                         <div key={c.category}>
-                          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "6px" }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                              <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: color, flexShrink: 0, display: "inline-block" }} />
-                              <span style={{ fontSize: "12px", fontWeight: 400, color: "#111827" }}>{c.category}</span>
+                          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "7px" }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: "9px" }}>
+                              <span style={{ width: "9px", height: "9px", borderRadius: "50%", background: color, flexShrink: 0, display: "inline-block" }} />
+                              <span style={{ fontSize: "13px", fontWeight: 400, color: "#111827" }}>{c.category}</span>
                             </div>
-                            <span style={{ fontSize: "12px", fontWeight: 400, color: "#374151", fontFamily: "var(--font-mono)" }}>
+                            <span style={{ fontSize: "13px", fontWeight: 400, color: "#374151", fontFamily: "var(--font-mono)" }}>
                               {fmt(c.total)}
                             </span>
                           </div>
-                          <div style={{ height: "5px", background: "#F3F4F6", borderRadius: "3px", overflow: "hidden", marginBottom: "3px" }}>
+                          <div style={{ height: "6px", background: "#F3F4F6", borderRadius: "3px", overflow: "hidden", marginBottom: "4px" }}>
                             <div style={{ height: "100%", width: `${pct}%`, background: color, borderRadius: "3px" }} />
                           </div>
-                          <div style={{ fontSize: "10px", color: "#9CA3AF" }}>{pct}%</div>
+                          <div style={{ fontSize: "11px", color: "#6B7280", fontWeight: 500 }}>{pct}%</div>
                         </div>
                       );
                     })}
@@ -298,20 +308,20 @@ export default function MonthReportModal({ month }: { month: string }) {
               {/* ── MAYOR GASTO ─────────────────────────────────── */}
               {topGasto && (
                 <div style={{
-                  background: "#fff8ee", border: "0.5px solid #f5c96e",
-                  borderRadius: "18px", padding: "18px 22px", marginBottom: "14px",
-                  display: "flex", alignItems: "center", gap: "14px",
+                  background: "#fff8ee", border: "1px solid #f5c96e",
+                  borderRadius: "18px", padding: "20px 24px",
+                  display: "flex", alignItems: "center", gap: "16px",
                 }}>
-                  <span style={{ fontSize: "22px", flexShrink: 0 }}>⚠️</span>
+                  <span style={{ fontSize: "24px", flexShrink: 0 }}>⚠️</span>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: "9px", fontWeight: 500, color: "#B45309", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "4px" }}>
+                    <div style={{ fontSize: "11px", fontWeight: 700, color: "#92400e", textTransform: "uppercase", letterSpacing: "0.09em", marginBottom: "5px" }}>
                       Mayor gasto del mes
                     </div>
-                    <div style={{ fontSize: "13px", fontWeight: 400, color: "#111827", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    <div style={{ fontSize: "14px", fontWeight: 400, color: "#111827", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                       {topGasto.note || topGasto.category}
                     </div>
                   </div>
-                  <div style={{ fontSize: "14px", fontWeight: 500, color: "#DC2626", fontFamily: "var(--font-mono)", flexShrink: 0 }}>
+                  <div style={{ fontSize: "15px", fontWeight: 600, color: "#DC2626", fontFamily: "var(--font-mono)", flexShrink: 0 }}>
                     {fmt(topGasto.amount)}
                   </div>
                 </div>
@@ -320,25 +330,23 @@ export default function MonthReportModal({ month }: { month: string }) {
               {/* ── METAS ───────────────────────────────────────── */}
               {data.goals.length > 0 && (
                 <div style={{
-                  background: "#fff", border: "0.5px solid #E5E7EB",
-                  borderRadius: "18px", padding: "20px 22px", marginBottom: "14px",
+                  background: "#fff", border: "1px solid #E5E7EB",
+                  borderRadius: "18px", padding: "22px 24px",
                 }}>
-                  <div style={{ fontSize: "9px", fontWeight: 500, color: "#9CA3AF", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: "16px" }}>
-                    Metas
-                  </div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+                  <SectionLabel>Metas</SectionLabel>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
                     {data.goals.map((g) => (
                       <div key={g.id}>
-                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "6px" }}>
-                          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                            <span style={{ fontSize: "15px" }}>{g.emoji}</span>
-                            <span style={{ fontSize: "12px", fontWeight: 400, color: "#111827" }}>{g.name}</span>
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "7px" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: "9px" }}>
+                            <span style={{ fontSize: "16px" }}>{g.emoji}</span>
+                            <span style={{ fontSize: "13px", fontWeight: 400, color: "#111827" }}>{g.name}</span>
                           </div>
-                          <span style={{ fontSize: "12px", fontWeight: 500, color: g.completed ? "#166534" : "#378ADD" }}>
+                          <span style={{ fontSize: "13px", fontWeight: 600, color: g.completed ? "#166534" : "#378ADD" }}>
                             {g.pct}%
                           </span>
                         </div>
-                        <div style={{ height: "5px", background: "#F3F4F6", borderRadius: "3px", overflow: "hidden" }}>
+                        <div style={{ height: "6px", background: "#F3F4F6", borderRadius: "3px", overflow: "hidden" }}>
                           <div style={{ height: "100%", width: `${Math.min(g.pct, 100)}%`, background: g.completed ? "#1D9E75" : "#378ADD", borderRadius: "3px" }} />
                         </div>
                       </div>
@@ -348,11 +356,15 @@ export default function MonthReportModal({ month }: { month: string }) {
               )}
 
               {/* ── FOOTER ──────────────────────────────────────── */}
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: "4px" }}>
-                <span style={{ fontSize: "9px", color: "#D1D5DB", textTransform: "capitalize" }}>
+              <div style={{
+                display: "flex", justifyContent: "space-between", alignItems: "center",
+                padding: "12px 4px 4px",
+                borderTop: "1px solid #E5E7EB",
+              }}>
+                <span style={{ fontSize: "11px", color: "#9CA3AF", textTransform: "capitalize" }}>
                   {monthName(month)}
                 </span>
-                <span style={{ fontSize: "9px", color: "#D1D5DB" }}>
+                <span style={{ fontSize: "11px", color: "#9CA3AF", fontWeight: 500 }}>
                   Mis Finanzas
                 </span>
               </div>
