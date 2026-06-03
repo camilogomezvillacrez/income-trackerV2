@@ -104,12 +104,22 @@ export default function MonthReportModal({ month }: { month: string }) {
         import("jspdf"),
       ]);
 
-      // Wrap clone in a white full-width container so margins are correct in PDF
+      // Render clone off-screen without clipping so html2canvas captures full height
       const wrapper = document.createElement("div");
-      wrapper.style.cssText = "position:fixed;top:-99999px;left:0;width:520px;background:#f9fafb;padding:28px;box-sizing:border-box;";
+      wrapper.style.position = "fixed";
+      wrapper.style.left = "-9999px";
+      wrapper.style.top = "0";
+      wrapper.style.width = "520px";
+      wrapper.style.background = "#f9fafb";
+      wrapper.style.padding = "28px";
+      wrapper.style.boxSizing = "border-box";
 
       const clone = reportRef.current.cloneNode(true) as HTMLElement;
-      clone.style.cssText = "width:100%;height:auto;overflow:visible;";
+      // Set only the properties we need to override — cssText would wipe existing inline styles
+      clone.style.width = "100%";
+      clone.style.height = "auto";
+      clone.style.overflow = "visible";
+      clone.style.maxHeight = "none";
       wrapper.appendChild(clone);
       document.body.appendChild(wrapper);
 
