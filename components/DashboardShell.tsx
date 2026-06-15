@@ -95,26 +95,14 @@ export default function DashboardShell({ userEmail }: { userEmail: string }) {
         /* ── Mobile (≤ 768px) ──────────────────────────── */
         @media (max-width: 768px) {
           .shell-sidebar    { display: none; }
-          .shell-bottom-nav {
-            display: flex;
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            z-index: 150;
-          }
+          .shell-bottom-nav { display: flex; flex-shrink: 0; }
           .shell-fab        { display: flex; }
-          .shell-main {
-            padding: 12px;
-            padding-bottom: 80px;
-            overflow-y: auto;
-            flex: 1;
-          }
+          .shell-main       { padding: 12px; overflow-y: auto; flex: 1; }
         }
 
         .shell-fab {
           position: fixed;
-          bottom: 86px;
+          bottom: 80px;
           right: 18px;
           z-index: 210;
           width: 52px;
