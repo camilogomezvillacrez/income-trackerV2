@@ -1,21 +1,23 @@
 "use client";
 
+import { Home, ArrowLeftRight, Target, FolderOpen, Settings } from "lucide-react";
 import { useDashboardStore } from "@/store/dashboardStore";
 import type { ViewType } from "@/types";
 
 interface BnItem {
-  emoji: string;
+  icon: React.ReactNode;
+  iconActive: React.ReactNode;
   label: string;
   view: ViewType;
   id: string;
 }
 
 const ITEMS: BnItem[] = [
-  { emoji: "🏠", label: "Resumen",      view: "resumen",        id: "bn-resumen" },
-  { emoji: "↔️",  label: "Movimientos", view: "movimientos",    id: "bn-mov"     },
-  { emoji: "🎯", label: "Metas",        view: "metas",          id: "bn-metas"   },
-  { emoji: "📂", label: "Categorías",   view: "cats",           id: "bn-cats"    },
-  { emoji: "⚙️", label: "Config",       view: "configuracion",  id: "bn-config"  },
+  { icon: <Home size={22} strokeWidth={1.8} />,            iconActive: <Home size={22} strokeWidth={2.5} />,            label: "Resumen",      view: "resumen",       id: "bn-resumen" },
+  { icon: <ArrowLeftRight size={22} strokeWidth={1.8} />,  iconActive: <ArrowLeftRight size={22} strokeWidth={2.5} />,  label: "Movimientos",  view: "movimientos",   id: "bn-mov"     },
+  { icon: <Target size={22} strokeWidth={1.8} />,          iconActive: <Target size={22} strokeWidth={2.5} />,          label: "Metas",        view: "metas",         id: "bn-metas"   },
+  { icon: <FolderOpen size={22} strokeWidth={1.8} />,      iconActive: <FolderOpen size={22} strokeWidth={2.5} />,      label: "Categorías",   view: "cats",          id: "bn-cats"    },
+  { icon: <Settings size={22} strokeWidth={1.8} />,        iconActive: <Settings size={22} strokeWidth={2.5} />,        label: "Config",       view: "configuracion", id: "bn-config"  },
 ];
 
 export default function BottomNav() {
@@ -37,7 +39,9 @@ export default function BottomNav() {
       }}
     >
       {ITEMS.map((item) => {
-        const active = view === item.view || (item.view === "cats" && view.startsWith("cat-")) || (item.view === "configuracion" && view === "configuracion");
+        const active = view === item.view
+          || (item.view === "cats" && view.startsWith("cat-"))
+          || (item.view === "configuracion" && view === "configuracion");
         return (
           <button
             key={item.id}
@@ -47,25 +51,20 @@ export default function BottomNav() {
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
-              gap: "2px",
-              padding: "6px 12px",
+              gap: "4px",
+              padding: "8px 10px",
               borderRadius: "10px",
               cursor: "pointer",
               border: "none",
               background: active ? "rgba(255,255,255,.18)" : "transparent",
+              color: active ? "#fff" : "rgba(255,255,255,.75)",
               fontFamily: "var(--font-sans)",
               flex: 1,
-              transition: "background 0.15s",
+              transition: "background 0.15s, color 0.15s",
             }}
           >
-            <span style={{ fontSize: "20px", lineHeight: 1 }}>{item.emoji}</span>
-            <span
-              style={{
-                fontSize: "9px",
-                fontWeight: active ? 700 : 500,
-                color: active ? "#fff" : "rgba(255,255,255,.8)",
-              }}
-            >
+            {active ? item.iconActive : item.icon}
+            <span style={{ fontSize: "9px", fontWeight: active ? 700 : 500 }}>
               {item.label}
             </span>
           </button>
