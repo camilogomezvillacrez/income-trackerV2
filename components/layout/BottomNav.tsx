@@ -25,14 +25,15 @@ export default function BottomNav() {
     <nav
       style={{
         width: "100%",
-        minHeight: "74px",
+        height: "calc(74px + env(safe-area-inset-bottom, 0px))",
         flexShrink: 0,
         background: "#4A7C59",
         display: "flex",
         alignItems: "center",
         justifyContent: "space-around",
-        padding: "0 4px",
         paddingBottom: "env(safe-area-inset-bottom, 0px)",
+        paddingLeft: "4px",
+        paddingRight: "4px",
       }}
     >
       {ITEMS.map((item) => {
