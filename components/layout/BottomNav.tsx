@@ -25,7 +25,7 @@ export default function BottomNav() {
     <nav
       style={{
         width: "100%",
-        height: "calc(74px + env(safe-area-inset-bottom, 0px))",
+        height: "calc(86px + env(safe-area-inset-bottom, 0px))",
         flexShrink: 0,
         background: "#4A7C59",
         display: "flex",
