@@ -18,7 +18,8 @@ export const CAT_META: Record<string, CatMeta> = {
   Tecnología:      { emoji: "💻", color: "#0369A1", bg: "#E0F2FE" },
   Suscripciones:   { emoji: "🔄", color: "#0E7490", bg: "#CFFAFE" },
   "Cuidado personal": { emoji: "💅", color: "#BE185D", bg: "#FDF2F8" },
-  General:         { emoji: "⚪", color: "#6B7280", bg: "#F3F4F6" },
+  "Pólizas":          { emoji: "🛡️", color: "#0C4A6E", bg: "#E0F2FE" },
+  General:            { emoji: "⚪", color: "#6B7280", bg: "#F3F4F6" },
   Salario:         { emoji: "💰", color: "#3B6D11", bg: "#EAF3DE" },
   Freelance:       { emoji: "🧑‍💻", color: "#1D4ED8", bg: "#DBEAFE" },
   Ventas:          { emoji: "📦", color: "#B45309", bg: "#FEF3C7" },
@@ -41,6 +42,7 @@ export const EXP_CATS = [
   "Tecnología",
   "Suscripciones",
   "Cuidado personal",
+  "Pólizas",
 ] as const;
 
 export const INC_CATS = [
@@ -53,7 +55,7 @@ export const INC_CATS = [
 ] as const;
 
 export const SUBCATS: Record<string, string[]> = {
-  Vivienda:        ["Arriendo", "Servicios", "Agua", "Luz", "Gas", "Internet", "Administración"],
+  Vivienda:        ["Arriendo", "Servicios", "Agua", "Luz", "Gas", "Internet", "Administración", "Pago empleada", "Pago jardín", "Pago clases extras niños"],
   "Alimentación":  ["Mercado", "Restaurante", "Domicilio", "Desayuno"],
   Transporte:      ["Uber", "Taxi", "Gasolina", "Bus", "TransMilenio", "Peaje"],
   Salud:           ["Médico", "Medicina", "Farmacia", "Gym", "Psicólogo"],
@@ -66,10 +68,11 @@ export const SUBCATS: Record<string, string[]> = {
   Tecnología:      ["Celular", "Computador", "Tablet", "Smartwatch", "Accesorios", "Software", "Suscripciones"],
   Suscripciones:      ["Streaming", "Música", "Software", "Juegos", "Noticias", "Fitness"],
   "Cuidado personal": ["Corte de cabello", "Uñas", "Barbería", "Depilación", "Maquillaje", "Skincare", "Spa"],
+  "Pólizas":          ["Póliza de salud", "Póliza de vida", "Seguro mascota", "Seguro funerario"],
 };
 
 export const SUBCAT_EMOJIS: Record<string, Record<string, string>> = {
-  Vivienda:        { Arriendo:"🏠", Servicios:"🏡", Agua:"💧", Luz:"⚡", Gas:"🔥", Internet:"📡", "Administración":"🏢" },
+  Vivienda:        { Arriendo:"🏠", Servicios:"🏡", Agua:"💧", Luz:"⚡", Gas:"🔥", Internet:"📡", "Administración":"🏢", "Pago empleada":"🧹", "Pago jardín":"🌿", "Pago clases extras niños":"🎒" },
   "Alimentación":  { Mercado:"🛒", Restaurante:"🍽️", Domicilio:"🛵", Desayuno:"☕" },
   Transporte:      { Uber:"🚘", Taxi:"🚕", Gasolina:"⛽", Bus:"🚌", TransMilenio:"🚈", Peaje:"🛣️" },
   Salud:           { "Médico":"🏥", Medicina:"💊", Farmacia:"🪙", Gym:"💪", "Psicólogo":"🧠" },
@@ -82,6 +85,7 @@ export const SUBCAT_EMOJIS: Record<string, Record<string, string>> = {
   Tecnología:      { Celular:"📱", Computador:"💻", Tablet:"📲", Smartwatch:"⌚", Accesorios:"🖱️", Software:"⚙️", Suscripciones:"🔑" },
   Suscripciones:      { Streaming:"📺", "Música":"🎵", Software:"💾", Juegos:"🎮", Noticias:"📰", Fitness:"🏃" },
   "Cuidado personal": { "Corte de cabello":"✂️", "Uñas":"💅", "Barbería":"🪒", "Depilación":"🧴", "Maquillaje":"💄", Skincare:"🧴", Spa:"🧖" },
+  "Pólizas":          { "Póliza de salud":"🏥", "Póliza de vida":"💙", "Seguro mascota":"🐾", "Seguro funerario":"⚰️" },
 };
 
 export const PAYMENT_METHODS = ["Efectivo", "Visa Crédito", "Nu Crédito"] as const;
