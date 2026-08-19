@@ -38,14 +38,16 @@ export default function LoginPage() {
   }
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--bg)", padding: "16px" }}>
-      <div style={{ background: "var(--white)", border: "1px solid var(--border)", borderRadius: "14px", padding: "36px 28px", width: "100%", maxWidth: "380px", boxShadow: "0 4px 24px rgba(0,0,0,.06)" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "28px" }}>
-          <Logo size={38} />
-          <div>
-            <div style={{ fontSize: "16px", fontWeight: 600, color: "var(--text)" }}>Mis Finanzas</div>
-            <div style={{ fontSize: "11px", color: "var(--muted)" }}>Inicia sesión en tu cuenta</div>
-          </div>
+    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(165deg, #DCEBDA 0%, #F4F6F1 45%, #C9DECB 100%)", padding: "16px", position: "relative", overflow: "hidden" }}>
+      {/* Decoración de fondo */}
+      <div style={{ position: "absolute", width: "320px", height: "320px", borderRadius: "50%", background: "radial-gradient(circle, rgba(74,124,89,0.20), transparent 70%)", top: "-80px", right: "-60px" }} />
+      <div style={{ position: "absolute", width: "380px", height: "380px", borderRadius: "50%", background: "radial-gradient(circle, rgba(74,124,89,0.16), transparent 70%)", bottom: "-120px", left: "-100px" }} />
+
+      <div style={{ background: "var(--white)", border: "1px solid #D8E3D6", borderRadius: "18px", padding: "34px 28px", width: "100%", maxWidth: "380px", boxShadow: "0 14px 44px rgba(58,94,68,.20)", position: "relative" }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", marginBottom: "24px" }}>
+          <Logo size={96} />
+          <div style={{ fontSize: "23px", fontWeight: 700, color: "var(--text)", marginTop: "8px", letterSpacing: "-0.01em" }}>Mis Finanzas</div>
+          <div style={{ fontSize: "12.5px", color: "#4A7C59", fontWeight: 500, marginTop: "3px" }}>Inicia sesión en tu cuenta</div>
         </div>
 
         <form onSubmit={handleSubmit}>
@@ -65,7 +67,7 @@ export default function LoginPage() {
 
         <p style={{ textAlign: "center", fontSize: "12px", color: "var(--muted)", marginTop: "20px" }}>
           ¿No tienes cuenta?{" "}
-          <Link href="/register" style={{ color: "var(--text)", fontWeight: 600, textDecoration: "none" }}>
+          <Link href="/register" style={{ color: "#4A7C59", fontWeight: 700, textDecoration: "none" }}>
             Regístrate
           </Link>
         </p>
@@ -90,7 +92,8 @@ const inputStyle = (hasError: boolean): React.CSSProperties => ({
 });
 
 const btnStyle = (loading: boolean): React.CSSProperties => ({
-  width: "100%", background: "var(--text)", color: "#fff", border: "none", borderRadius: "8px",
-  padding: "11px", fontSize: "13px", fontWeight: 500, fontFamily: "var(--font-sans)",
+  width: "100%", background: "#4A7C59", color: "#fff", border: "none", borderRadius: "10px",
+  padding: "13px", fontSize: "14px", fontWeight: 600, fontFamily: "var(--font-sans)",
   cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.7 : 1, marginTop: "4px",
+  boxShadow: "0 5px 16px rgba(74,124,89,.35)",
 });
