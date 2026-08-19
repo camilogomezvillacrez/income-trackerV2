@@ -1,6 +1,6 @@
 "use client";
 
-import { Home, ArrowLeftRight, Target, FolderOpen, Settings } from "lucide-react";
+import { Home, ArrowLeftRight, Target, FolderOpen, Settings, Bot } from "lucide-react";
 import { useDashboardStore } from "@/store/dashboardStore";
 import type { ViewType } from "@/types";
 
@@ -17,6 +17,7 @@ const ITEMS: BnItem[] = [
   { icon: <ArrowLeftRight size={22} strokeWidth={1.8} />,  iconActive: <ArrowLeftRight size={22} strokeWidth={2.5} />,  label: "Movimientos",  view: "movimientos",   id: "bn-mov"     },
   { icon: <Target size={22} strokeWidth={1.8} />,          iconActive: <Target size={22} strokeWidth={2.5} />,          label: "Metas",        view: "metas",         id: "bn-metas"   },
   { icon: <FolderOpen size={22} strokeWidth={1.8} />,      iconActive: <FolderOpen size={22} strokeWidth={2.5} />,      label: "Categorías",   view: "cats",          id: "bn-cats"    },
+  { icon: <Bot size={22} strokeWidth={1.8} />,             iconActive: <Bot size={22} strokeWidth={2.5} />,             label: "IA",           view: "asistente",     id: "bn-ia"      },
   { icon: <Settings size={22} strokeWidth={1.8} />,        iconActive: <Settings size={22} strokeWidth={2.5} />,        label: "Config",       view: "configuracion", id: "bn-config"  },
 ];
 

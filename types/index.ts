@@ -58,6 +58,7 @@ export type ViewType =
   | "movimientos"
   | "metas"
   | "cats"
+  | "asistente"
   | "configuracion"
   | `cat-${string}`;
 

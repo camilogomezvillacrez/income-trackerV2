@@ -1,6 +1,6 @@
 "use client";
 
-import { LayoutDashboard, ArrowLeftRight, Target, Settings } from "lucide-react";
+import { LayoutDashboard, ArrowLeftRight, Target, Settings, Bot } from "lucide-react";
 import { useDashboardStore } from "@/store/dashboardStore";
 import type { ViewType } from "@/types";
 import { CAT_META, EXP_CATS } from "@/constants/categories";
@@ -44,6 +44,7 @@ export default function Sidebar() {
       <SidebarItem icon={<LayoutDashboard size={16} />} label="Resumen" active={view === "resumen"} onClick={() => setView("resumen")} />
       <SidebarItem icon={<ArrowLeftRight size={16} />} label="Movimientos" active={view === "movimientos"} onClick={() => setView("movimientos")} />
       <SidebarItem icon={<Target size={16} />} label="Metas" active={view === "metas"} onClick={() => setView("metas")} />
+      <SidebarItem icon={<Bot size={16} />} label="Asistente IA" active={view === "asistente"} onClick={() => setView("asistente")} />
       <SidebarItem icon={<Settings size={16} />} label="Configuración" active={view === "configuracion"} onClick={() => setView("configuracion")} />
 
       {sectionLabel("Categorías", 14)}

@@ -5,6 +5,7 @@ import Navbar from "@/components/layout/Navbar";
 import Sidebar from "@/components/layout/Sidebar";
 import BottomNav from "@/components/layout/BottomNav";
 import ToastContainer from "@/components/common/Toast";
+import SplashScreen from "@/components/common/SplashScreen";
 import { useDashboard } from "@/hooks/useDashboard";
 import { useDashboardStore } from "@/store/dashboardStore";
 
@@ -14,6 +15,7 @@ import MetasView from "@/views/MetasView";
 import CategoriasView from "@/views/CategoriasView";
 import CategoriaDetailView from "@/views/CategoriaDetailView";
 import ConfiguracionView from "@/views/ConfiguracionView";
+import AsistenteView from "@/views/AsistenteView";
 
 import RegisterModal from "@/components/modals/RegisterModal";
 import EditModal from "@/components/modals/EditModal";
@@ -38,6 +40,7 @@ export default function DashboardShell({ userEmail }: { userEmail: string }) {
 
   return (
     <>
+      <SplashScreen />
       <Navbar />
 
       <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
@@ -53,6 +56,7 @@ export default function DashboardShell({ userEmail }: { userEmail: string }) {
             {view === "movimientos"   && <MovimientosView />}
             {view === "metas"         && <MetasView />}
             {view === "cats"          && <CategoriasView />}
+            {view === "asistente"     && <AsistenteView />}
             {view === "configuracion" && <ConfiguracionView />}
             {isCatDetail              && <CategoriaDetailView catName={view.slice(4)} />}
           </div>

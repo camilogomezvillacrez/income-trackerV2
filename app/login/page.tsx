@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import Logo from "@/components/common/Logo";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -40,7 +41,7 @@ export default function LoginPage() {
     <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--bg)", padding: "16px" }}>
       <div style={{ background: "var(--white)", border: "1px solid var(--border)", borderRadius: "14px", padding: "36px 28px", width: "100%", maxWidth: "380px", boxShadow: "0 4px 24px rgba(0,0,0,.06)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "28px" }}>
-          <div style={{ width: "36px", height: "36px", borderRadius: "9px", background: "var(--text)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px" }}>📊</div>
+          <Logo size={38} />
           <div>
             <div style={{ fontSize: "16px", fontWeight: 600, color: "var(--text)" }}>Mis Finanzas</div>
             <div style={{ fontSize: "11px", color: "var(--muted)" }}>Inicia sesión en tu cuenta</div>

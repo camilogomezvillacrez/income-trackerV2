@@ -1,7 +1,8 @@
 "use client";
 
-import { PieChart, Eye, EyeOff, LogOut } from "lucide-react";
+import { Eye, EyeOff, LogOut } from "lucide-react";
 import MonthNav from "./MonthNav";
+import Logo from "@/components/common/Logo";
 import { useDashboardStore } from "@/store/dashboardStore";
 
 export default function Navbar() {
@@ -35,9 +36,7 @@ export default function Navbar() {
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-        <div style={{ width: "28px", height: "28px", borderRadius: "7px", background: "var(--text)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <PieChart size={14} color="#fff" />
-        </div>
+        <Logo size={28} />
         <span style={{ fontSize: "14px", fontWeight: 600, color: "var(--text)" }}>Mis Finanzas</span>
       </div>
 
