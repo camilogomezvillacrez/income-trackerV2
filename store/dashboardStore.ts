@@ -38,7 +38,8 @@ interface DashboardStore {
   setMonth: (m: string) => void;
   setData: (d: DashboardData) => void;
   setLoading: (l: boolean) => void;
-  refresh: () => Promise<void>;
+  /** background = sondeo automático; no renueva la sesión del usuario. */
+  refresh: (background?: boolean) => Promise<void>;
 }
 
 export const useDashboardStore = create<DashboardStore>((set, get) => ({
@@ -72,10 +73,12 @@ export const useDashboardStore = create<DashboardStore>((set, get) => ({
   setData: (d) => set({ data: d, loading: false }),
   setLoading: (l) => set({ loading: l }),
 
-  refresh: async () => {
+  refresh: async (background = false) => {
     const month = get().activeMonth;
     set({ loading: true });
-    const res = await fetch(`/api/dashboard?month=${month}`);
+    const res = await fetch(`/api/dashboard?month=${month}`, {
+      headers: background ? { "x-bg-poll": "1" } : undefined,
+    });
     if (res.status === 401) { window.location.href = "/login"; return; }
     const data: DashboardData = await res.json();
     // No sobreescribir activeMonth — el usuario controla qué mes ve

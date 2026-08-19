@@ -46,8 +46,9 @@ export async function POST(req: NextRequest) {
   resetRateLimit(ip);
 
   const session = await getSession();
-  session.userId = Number(user!.id);
-  session.email  = email.toLowerCase().trim();
+  session.userId       = Number(user!.id);
+  session.email        = email.toLowerCase().trim();
+  session.lastActivity = Date.now();
   await session.save();
 
   return NextResponse.json({ ok: true });

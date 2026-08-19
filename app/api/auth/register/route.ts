@@ -44,8 +44,9 @@ export async function POST(req: NextRequest) {
 
   const userId = Number(res.lastInsertRowid);
   const session = await getSession();
-  session.userId = userId;
-  session.email  = email.toLowerCase().trim();
+  session.userId       = userId;
+  session.email        = email.toLowerCase().trim();
+  session.lastActivity = Date.now();
   await session.save();
 
   return NextResponse.json({ ok: true });
