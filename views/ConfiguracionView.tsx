@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Settings, Target, FileText, ArrowLeft } from "lucide-react";
+import { Settings, Target, FileText, ArrowLeft, FileSpreadsheet, Download } from "lucide-react";
 import { useDashboardStore, useToastStore } from "@/store/dashboardStore";
 import GastosFijosPanel from "@/components/settings/GastosFijosPanel";
+import ExcelButton from "@/components/common/ExcelButton";
+import { exportCSV } from "@/lib/exportCSV";
 
 export default function ConfiguracionView() {
   const { data, refresh, activeMonth, openReport, setView } = useDashboardStore();
@@ -102,6 +104,30 @@ export default function ConfiguracionView() {
             </button>
           ))}
         </div>
+      </div>
+
+      {/* Exportar datos */}
+      <div style={{ background: "var(--white)", border: "1px solid var(--border)", borderRadius: "10px", padding: "20px", marginBottom: "12px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px" }}>
+          <FileSpreadsheet size={16} color="#1D6F42" />
+          <span style={{ fontSize: "14px", fontWeight: 600, color: "var(--text)" }}>Exportar datos</span>
+        </div>
+        <p style={{ fontSize: "12px", color: "var(--muted)", marginBottom: "14px", lineHeight: 1.6 }}>
+          El Excel trae todo en hojas separadas: resumen, movimientos del mes,
+          histórico completo, categorías, deudas, abonos, gastos fijos y metas.
+        </p>
+        <ExcelButton variant="full" />
+        <button
+          onClick={() => data && exportCSV(data)}
+          style={{
+            width: "100%", marginTop: "8px", display: "flex", alignItems: "center",
+            justifyContent: "center", gap: "8px", background: "none",
+            border: "1px solid var(--border)", color: "var(--sub)", borderRadius: "8px",
+            padding: "10px", fontSize: "12.5px", cursor: "pointer", fontFamily: "var(--font-sans)",
+          }}
+        >
+          <Download size={14} /> CSV solo del mes
+        </button>
       </div>
 
       {/* Gastos fijos */}

@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import KPICards from "@/components/dashboard/KPICards";
 import RecordatoriosCard from "@/components/dashboard/RecordatoriosCard";
+import ExcelButton from "@/components/common/ExcelButton";
 import CategoryBars from "@/components/dashboard/CategoryBars";
 import AIRecommendations from "@/components/dashboard/AIRecommendations";
 import TransactionRow from "@/components/transactions/TransactionRow";
@@ -64,6 +65,8 @@ export default function ResumenView() {
         <Panel
           title="Por categoría"
           action={
+            <div style={{ display: "flex", gap: "6px" }}>
+            <ExcelButton />
             <button
               onClick={() => data && exportCSV(data)}
               style={{
@@ -82,6 +85,7 @@ export default function ResumenView() {
             >
               <Download size={12} /> CSV
             </button>
+            </div>
           }
         >
           <CategoryBars />
