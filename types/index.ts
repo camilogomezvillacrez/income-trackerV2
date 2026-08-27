@@ -63,6 +63,20 @@ export interface DebtPerson {
   debts: Debt[];
 }
 
+export interface FixedExpense {
+  id: number;
+  name: string;
+  amount: number;
+  category: string;
+  subcategory: string | null;
+  /** Día del mes en que suele caer (1-31) */
+  day_of_month: number;
+  payment_method: string | null;
+  active: number;
+  /** Ya quedó registrado en el mes que se está viendo */
+  registered: boolean;
+}
+
 export interface MonthlyRow {
   month: string;
   ingresos: number;
@@ -83,6 +97,7 @@ export interface DashboardData {
   current_month: string;
   goals: Goal[];
   debts: Debt[];
+  fixed_expenses: FixedExpense[];
   all_months: string[];
   budgets: Record<string, number>;
   weekly: Record<string, number>;
@@ -106,6 +121,7 @@ export type ModalType =
   | "abono"
   | "deuda"
   | "abono-deuda"
+  | "fijo"
   | null;
 
 export type MovTab = "todos" | "ingreso" | "gasto";

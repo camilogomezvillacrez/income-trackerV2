@@ -25,6 +25,7 @@ import GoalModal from "@/components/modals/GoalModal";
 import AbonoModal from "@/components/modals/AbonoModal";
 import DebtModal from "@/components/modals/DebtModal";
 import DebtAbonoModal from "@/components/modals/DebtAbonoModal";
+import FixedModal from "@/components/modals/FixedModal";
 import MonthReportModal from "@/components/modals/MonthReportModal";
 
 import { useEffect } from "react";
@@ -91,6 +92,7 @@ export default function DashboardShell({ userEmail }: { userEmail: string }) {
       {modal === "abono"    && <AbonoModal />}
       {modal === "deuda"    && <DebtModal />}
       {modal === "abono-deuda" && <DebtAbonoModal />}
+      {modal === "fijo"     && <FixedModal />}
       {reportMonth          && <MonthReportModal month={reportMonth} />}
 
       <ToastContainer />

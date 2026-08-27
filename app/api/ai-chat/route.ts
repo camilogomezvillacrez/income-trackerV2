@@ -82,6 +82,14 @@ export async function POST(req: NextRequest) {
     })
     .join("\n");
 
+  const fixedLines = data.fixed_expenses
+    .filter((f) => f.active)
+    .map((f) => {
+      const estado = f.registered ? "ya registrado este mes" : "PENDIENTE de registrar";
+      return `- ${f.name}: ${fmt(f.amount)} el día ${f.day_of_month} (${f.category}) — ${estado}`;
+    })
+    .join("\n");
+
   const movLines = data.all_movs
     .slice(0, 40)
     .map(
@@ -110,6 +118,9 @@ ${goalLines || "Sin metas registradas."}
 
 Deudas pendientes:
 ${debtLines || "Sin deudas pendientes."}
+
+Gastos fijos mensuales:
+${fixedLines || "Sin gastos fijos configurados."}
 
 Historial de meses recientes:
 ${historyLines || "Sin historial."}

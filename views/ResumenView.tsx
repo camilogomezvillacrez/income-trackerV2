@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import KPICards from "@/components/dashboard/KPICards";
+import RecordatoriosCard from "@/components/dashboard/RecordatoriosCard";
 import CategoryBars from "@/components/dashboard/CategoryBars";
 import AIRecommendations from "@/components/dashboard/AIRecommendations";
 import TransactionRow from "@/components/transactions/TransactionRow";
@@ -40,6 +41,8 @@ export default function ResumenView() {
 
   return (
     <div>
+      <RecordatoriosCard />
+
       <KPICards />
 
       {/* Charts row 1 */}

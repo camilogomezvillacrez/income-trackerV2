@@ -1,5 +1,5 @@
 import { getDb } from "./db";
-import type { DashboardData, Movement, Goal, Debt, DebtPayment, CategoryTotal, MonthlyRow } from "@/types";
+import type { DashboardData, Movement, Goal, Debt, DebtPayment, FixedExpense, CategoryTotal, MonthlyRow } from "@/types";
 
 function toNum(v: unknown): number {
   return typeof v === "number" ? v : Number(v ?? 0);
@@ -195,6 +195,30 @@ export async function getDashboardData(month: string, userId: number): Promise<D
     };
   });
 
+  // ── Gastos fijos ─────────────────────────────────────────────
+  const fixedRes = await db.execute(
+    `SELECT f.*,
+       (SELECT COUNT(*) FROM expenses e
+        WHERE e.fixed_expense_id = f.id
+          AND substr(e.date,1,7) = ?
+          AND e.user_id = f.user_id) AS reg
+     FROM fixed_expenses f
+     WHERE f.user_id = ?
+     ORDER BY f.active DESC, f.day_of_month ASC, f.name ASC`,
+    [current_month, userId]
+  );
+  const fixed_expenses: FixedExpense[] = fixedRes.rows.map((r) => ({
+    id: toNum(r.id),
+    name: String(r.name),
+    amount: toNum(r.amount),
+    category: String(r.category),
+    subcategory: r.subcategory ? String(r.subcategory) : null,
+    day_of_month: toNum(r.day_of_month),
+    payment_method: r.payment_method ? String(r.payment_method) : null,
+    active: toNum(r.active),
+    registered: toNum(r.reg) > 0,
+  }));
+
   // ── Budgets ──────────────────────────────────────────────────
   const budgetsRes = await db.execute(
     "SELECT category, amount FROM budgets WHERE user_id=?",
@@ -213,6 +237,6 @@ export async function getDashboardData(month: string, userId: number): Promise<D
   return {
     monthly, by_category, by_cat_inc, recent, all_movs,
     month_inc, month_exp, balance, tasa_ahorro, savings_target,
-    current_month, goals, debts, all_months, budgets, weekly,
+    current_month, goals, debts, fixed_expenses, all_months, budgets, weekly,
   };
 }

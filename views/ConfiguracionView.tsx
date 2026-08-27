@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Settings, Target, FileText, ArrowLeft } from "lucide-react";
 import { useDashboardStore, useToastStore } from "@/store/dashboardStore";
+import GastosFijosPanel from "@/components/settings/GastosFijosPanel";
 
 export default function ConfiguracionView() {
   const { data, refresh, activeMonth, openReport, setView } = useDashboardStore();
@@ -102,6 +103,9 @@ export default function ConfiguracionView() {
           ))}
         </div>
       </div>
+
+      {/* Gastos fijos */}
+      <GastosFijosPanel />
 
       {/* Informe mensual */}
       <div style={{ background: "var(--white)", border: "1px solid var(--border)", borderRadius: "10px", padding: "20px" }}>
