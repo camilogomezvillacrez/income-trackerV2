@@ -1,6 +1,6 @@
 "use client";
 
-import { Home, ArrowLeftRight, Target, FolderOpen, Settings, Bot } from "lucide-react";
+import { Home, ArrowLeftRight, Target, FolderOpen, Bot, HandCoins } from "lucide-react";
 import { useDashboardStore } from "@/store/dashboardStore";
 import type { ViewType } from "@/types";
 
@@ -16,9 +16,9 @@ const ITEMS: BnItem[] = [
   { icon: <Home size={22} strokeWidth={1.8} />,            iconActive: <Home size={22} strokeWidth={2.5} />,            label: "Resumen",      view: "resumen",       id: "bn-resumen" },
   { icon: <ArrowLeftRight size={22} strokeWidth={1.8} />,  iconActive: <ArrowLeftRight size={22} strokeWidth={2.5} />,  label: "Movimientos",  view: "movimientos",   id: "bn-mov"     },
   { icon: <Target size={22} strokeWidth={1.8} />,          iconActive: <Target size={22} strokeWidth={2.5} />,          label: "Metas",        view: "metas",         id: "bn-metas"   },
+  { icon: <HandCoins size={22} strokeWidth={1.8} />,       iconActive: <HandCoins size={22} strokeWidth={2.5} />,       label: "Deudas",       view: "deudas",        id: "bn-deudas"  },
   { icon: <FolderOpen size={22} strokeWidth={1.8} />,      iconActive: <FolderOpen size={22} strokeWidth={2.5} />,      label: "Categorías",   view: "cats",          id: "bn-cats"    },
   { icon: <Bot size={22} strokeWidth={1.8} />,             iconActive: <Bot size={22} strokeWidth={2.5} />,             label: "IA",           view: "asistente",     id: "bn-ia"      },
-  { icon: <Settings size={22} strokeWidth={1.8} />,        iconActive: <Settings size={22} strokeWidth={2.5} />,        label: "Config",       view: "configuracion", id: "bn-config"  },
 ];
 
 export default function BottomNav() {
@@ -39,8 +39,7 @@ export default function BottomNav() {
     >
       {ITEMS.map((item) => {
         const active = view === item.view
-          || (item.view === "cats" && view.startsWith("cat-"))
-          || (item.view === "configuracion" && view === "configuracion");
+          || (item.view === "cats" && view.startsWith("cat-"));
         return (
           <button
             key={item.id}

@@ -17,6 +17,8 @@ interface DashboardStore {
   editTarget: EditTarget | null;
   deleteTarget: DeleteTarget | null;
   abonoTarget: AbonoTarget | null;
+  debtTarget: number | null;
+  editDebtId: number | null;
   userEmail: string;
   movTab: MovTab;
   privacyMode: boolean;
@@ -35,6 +37,8 @@ interface DashboardStore {
   setEditTarget: (t: EditTarget | null) => void;
   setDeleteTarget: (t: DeleteTarget | null) => void;
   setAbonoTarget: (t: AbonoTarget | null) => void;
+  setDebtTarget: (id: number | null) => void;
+  setEditDebtId: (id: number | null) => void;
   setMonth: (m: string) => void;
   setData: (d: DashboardData) => void;
   setLoading: (l: boolean) => void;
@@ -51,6 +55,8 @@ export const useDashboardStore = create<DashboardStore>((set, get) => ({
   editTarget: null,
   deleteTarget: null,
   abonoTarget: null,
+  debtTarget: null,
+  editDebtId: null,
   userEmail: "",
   movTab: "todos",
   privacyMode: false,
@@ -65,10 +71,12 @@ export const useDashboardStore = create<DashboardStore>((set, get) => ({
   togglePrivacy: () => set((s) => ({ privacyMode: !s.privacyMode })),
   navigateMovimientos: (tab) => set({ view: "movimientos", movTab: tab }),
   openModal: (m) => set({ modal: m }),
-  closeModal: () => set({ modal: null, editTarget: null, deleteTarget: null, abonoTarget: null }),
+  closeModal: () => set({ modal: null, editTarget: null, deleteTarget: null, abonoTarget: null, debtTarget: null, editDebtId: null }),
   setEditTarget: (t) => set({ editTarget: t }),
   setDeleteTarget: (t) => set({ deleteTarget: t }),
   setAbonoTarget: (t) => set({ abonoTarget: t }),
+  setDebtTarget: (id) => set({ debtTarget: id }),
+  setEditDebtId: (id) => set({ editDebtId: id }),
   setMonth: (m) => set({ activeMonth: m }),
   setData: (d) => set({ data: d, loading: false }),
   setLoading: (l) => set({ loading: l }),

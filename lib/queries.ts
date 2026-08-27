@@ -1,5 +1,5 @@
 import { getDb } from "./db";
-import type { DashboardData, Movement, Goal, CategoryTotal, MonthlyRow } from "@/types";
+import type { DashboardData, Movement, Goal, Debt, DebtPayment, CategoryTotal, MonthlyRow } from "@/types";
 
 function toNum(v: unknown): number {
   return typeof v === "number" ? v : Number(v ?? 0);
@@ -147,6 +147,54 @@ export async function getDashboardData(month: string, userId: number): Promise<D
     };
   });
 
+  // ── Deudas ───────────────────────────────────────────────────
+  const debtsRes = await db.execute(
+    `SELECT * FROM debts WHERE user_id=?
+     ORDER BY completed ASC, due_date IS NULL ASC, due_date ASC, created_at DESC`,
+    [userId]
+  );
+  const paymentsRes = await db.execute(
+    "SELECT * FROM debt_payments WHERE user_id=? ORDER BY date DESC, id DESC",
+    [userId]
+  );
+
+  const paymentsByDebt = new Map<number, DebtPayment[]>();
+  for (const r of paymentsRes.rows) {
+    const did = toNum(r.debt_id);
+    if (!paymentsByDebt.has(did)) paymentsByDebt.set(did, []);
+    paymentsByDebt.get(did)!.push({
+      id: toNum(r.id),
+      amount: toNum(r.amount),
+      date: String(r.date),
+      note: r.note ? String(r.note) : null,
+    });
+  }
+
+  const todayMs = Date.parse(new Date().toISOString().slice(0, 10) + "T00:00:00Z");
+  const debts: Debt[] = debtsRes.rows.map((r) => {
+    const amount  = toNum(r.amount);
+    const paid    = toNum(r.paid);
+    const pending = Math.max(amount - paid, 0);
+    const due     = r.due_date ? String(r.due_date) : null;
+    return {
+      id: toNum(r.id),
+      person: String(r.person),
+      type: String(r.type) === "me_deben" ? "me_deben" : "debo",
+      amount,
+      paid,
+      pending,
+      pct: amount > 0 ? Math.min(Math.round((paid / amount) * 100), 100) : 0,
+      description: r.description ? String(r.description) : null,
+      date: String(r.date),
+      due_date: due,
+      completed: toNum(r.completed),
+      days_left: due
+        ? Math.round((Date.parse(due + "T00:00:00Z") - todayMs) / 86400000)
+        : null,
+      payments: paymentsByDebt.get(toNum(r.id)) ?? [],
+    };
+  });
+
   // ── Budgets ──────────────────────────────────────────────────
   const budgetsRes = await db.execute(
     "SELECT category, amount FROM budgets WHERE user_id=?",
@@ -165,6 +213,6 @@ export async function getDashboardData(month: string, userId: number): Promise<D
   return {
     monthly, by_category, by_cat_inc, recent, all_movs,
     month_inc, month_exp, balance, tasa_ahorro, savings_target,
-    current_month, goals, all_months, budgets, weekly,
+    current_month, goals, debts, all_months, budgets, weekly,
   };
 }

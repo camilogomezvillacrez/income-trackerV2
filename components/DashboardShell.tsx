@@ -12,6 +12,7 @@ import { useDashboardStore } from "@/store/dashboardStore";
 import ResumenView from "@/views/ResumenView";
 import MovimientosView from "@/views/MovimientosView";
 import MetasView from "@/views/MetasView";
+import DeudasView from "@/views/DeudasView";
 import CategoriasView from "@/views/CategoriasView";
 import CategoriaDetailView from "@/views/CategoriaDetailView";
 import ConfiguracionView from "@/views/ConfiguracionView";
@@ -22,6 +23,8 @@ import EditModal from "@/components/modals/EditModal";
 import DeleteModal from "@/components/modals/DeleteModal";
 import GoalModal from "@/components/modals/GoalModal";
 import AbonoModal from "@/components/modals/AbonoModal";
+import DebtModal from "@/components/modals/DebtModal";
+import DebtAbonoModal from "@/components/modals/DebtAbonoModal";
 import MonthReportModal from "@/components/modals/MonthReportModal";
 
 import { useEffect } from "react";
@@ -55,6 +58,7 @@ export default function DashboardShell({ userEmail }: { userEmail: string }) {
             {view === "resumen"       && <ResumenView />}
             {view === "movimientos"   && <MovimientosView />}
             {view === "metas"         && <MetasView />}
+            {view === "deudas"        && <DeudasView />}
             {view === "cats"          && <CategoriasView />}
             {view === "asistente"     && <AsistenteView />}
             {view === "configuracion" && <ConfiguracionView />}
@@ -85,6 +89,8 @@ export default function DashboardShell({ userEmail }: { userEmail: string }) {
       {modal === "del"      && <DeleteModal />}
       {modal === "meta"     && <GoalModal />}
       {modal === "abono"    && <AbonoModal />}
+      {modal === "deuda"    && <DebtModal />}
+      {modal === "abono-deuda" && <DebtAbonoModal />}
       {reportMonth          && <MonthReportModal month={reportMonth} />}
 
       <ToastContainer />

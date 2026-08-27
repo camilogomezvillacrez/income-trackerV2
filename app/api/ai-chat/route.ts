@@ -64,6 +64,24 @@ export async function POST(req: NextRequest) {
     )
     .join("\n");
 
+  const debtLines = data.debts
+    .filter((d) => !d.completed)
+    .map((d) => {
+      const dir = d.type === "debo" ? `le debes a ${d.person}` : `${d.person} te debe`;
+      const abonado = d.paid > 0 ? ` (de ${fmt(d.amount)}, ya van ${fmt(d.paid)})` : "";
+      const desc = d.description ? ` — ${d.description}` : "";
+      let due = "";
+      if (d.due_date && d.days_left !== null) {
+        due = d.days_left < 0
+          ? `, VENCIDA hace ${Math.abs(d.days_left)} días`
+          : d.days_left === 0
+            ? ", vence HOY"
+            : `, vence en ${d.days_left} días`;
+      }
+      return `- ${dir} ${fmt(d.pending)}${abonado}${desc}${due}`;
+    })
+    .join("\n");
+
   const movLines = data.all_movs
     .slice(0, 40)
     .map(
@@ -89,6 +107,9 @@ ${catLines || "Sin gastos registrados este mes."}
 
 Metas de ahorro:
 ${goalLines || "Sin metas registradas."}
+
+Deudas pendientes:
+${debtLines || "Sin deudas pendientes."}
 
 Historial de meses recientes:
 ${historyLines || "Sin historial."}

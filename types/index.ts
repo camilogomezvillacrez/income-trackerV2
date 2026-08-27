@@ -29,6 +29,40 @@ export interface Goal {
   meses_restantes: number | null;
 }
 
+export interface DebtPayment {
+  id: number;
+  amount: number;
+  date: string;
+  note: string | null;
+}
+
+export interface Debt {
+  id: number;
+  person: string;
+  /** 'debo' = yo le debo a alguien · 'me_deben' = alguien me debe */
+  type: "debo" | "me_deben";
+  amount: number;
+  paid: number;
+  pending: number;
+  pct: number;
+  description: string | null;
+  date: string;
+  due_date: string | null;
+  completed: number;
+  /** Días que faltan para el vencimiento (negativo = vencida) */
+  days_left: number | null;
+  payments: DebtPayment[];
+}
+
+/** Deudas agrupadas por persona */
+export interface DebtPerson {
+  person: string;
+  me_deben: number;
+  debo: number;
+  neto: number;
+  debts: Debt[];
+}
+
 export interface MonthlyRow {
   month: string;
   ingresos: number;
@@ -48,6 +82,7 @@ export interface DashboardData {
   savings_target: number;
   current_month: string;
   goals: Goal[];
+  debts: Debt[];
   all_months: string[];
   budgets: Record<string, number>;
   weekly: Record<string, number>;
@@ -57,6 +92,7 @@ export type ViewType =
   | "resumen"
   | "movimientos"
   | "metas"
+  | "deudas"
   | "cats"
   | "asistente"
   | "configuracion"
@@ -68,6 +104,8 @@ export type ModalType =
   | "del"
   | "meta"
   | "abono"
+  | "deuda"
+  | "abono-deuda"
   | null;
 
 export type MovTab = "todos" | "ingreso" | "gasto";
