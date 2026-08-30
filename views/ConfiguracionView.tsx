@@ -1,14 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Settings, Target, FileText, ArrowLeft, FileSpreadsheet, Download } from "lucide-react";
+import { Settings, Target, FileText, ArrowLeft, FileSpreadsheet, Download, LogOut } from "lucide-react";
 import { useDashboardStore, useToastStore } from "@/store/dashboardStore";
 import GastosFijosPanel from "@/components/settings/GastosFijosPanel";
 import ExcelButton from "@/components/common/ExcelButton";
 import { exportCSV } from "@/lib/exportCSV";
 
 export default function ConfiguracionView() {
-  const { data, refresh, activeMonth, openReport, setView } = useDashboardStore();
+  const { data, refresh, activeMonth, openReport, setView, userEmail } = useDashboardStore();
   const toast = useToastStore((s) => s.show);
 
   const currentTarget = data?.savings_target ?? 20;
@@ -27,6 +27,11 @@ export default function ConfiguracionView() {
     await refresh();
     toast("✓ Configuración guardada");
     setSaving(false);
+  }
+
+  async function handleLogout() {
+    await fetch("/api/auth/logout", { method: "POST" });
+    window.location.href = "/login";
   }
 
   return (
@@ -154,6 +159,29 @@ export default function ConfiguracionView() {
         >
           <FileText size={15} />
           Generar informe de {new Date(Number(activeMonth.split("-")[0]), Number(activeMonth.split("-")[1]) - 1, 1).toLocaleDateString("es-CO", { month: "long", year: "numeric" })}
+        </button>
+      </div>
+
+      {/* Sesion — vive aqui y no en la barra: al lado del avatar un toque
+          mal dado cerraba la sesion sin confirmacion. */}
+      <div style={{ background: "var(--white)", border: "1px solid var(--border)", borderRadius: "10px", padding: "20px", marginTop: "16px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px" }}>
+          <LogOut size={16} color="var(--muted)" />
+          <span style={{ fontSize: "14px", fontWeight: 600, color: "var(--text)" }}>Sesión</span>
+        </div>
+        <p style={{ fontSize: "12px", color: "var(--muted)", marginBottom: "16px", lineHeight: 1.6 }}>
+          Has iniciado sesión como {userEmail ?? "tu cuenta"}.
+        </p>
+        <button
+          onClick={handleLogout}
+          style={{
+            display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
+            background: "none", color: "var(--red)", border: "1px solid var(--border)",
+            borderRadius: "8px", padding: "12px", fontSize: "13px", fontWeight: 600,
+            cursor: "pointer", fontFamily: "var(--font-sans)", width: "100%",
+          }}
+        >
+          <LogOut size={15} /> Cerrar sesión
         </button>
       </div>
     </div>
