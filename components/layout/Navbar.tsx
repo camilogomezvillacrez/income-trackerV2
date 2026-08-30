@@ -6,13 +6,12 @@ import Logo from "@/components/common/Logo";
 import { useDashboardStore } from "@/store/dashboardStore";
 
 /*
- * En movil la barra va en dos renglones: el logo centrado arriba (con el ojo y
- * el avatar a los lados) y el selector de mes debajo, a lo ancho. En un solo
- * renglon no caben: para centrar el logo las columnas laterales tienen que
- * medir igual, y el mes pide ~185px contra los 88 de los controles.
+ * Un solo renglon: marca a la izquierda, mes al centro, acciones a la derecha.
+ * Las columnas laterales miden igual (88px, los dos botones de 44) para que el
+ * selector de mes quede centrado de verdad y no desplazado.
  *
- * En escritorio si cabe todo seguido, asi que vuelve a un renglon con el nombre
- * a la izquierda, el mes al centro y las acciones a la derecha.
+ * En movil se oculta el nombre "Mis Finanzas": con el no cabia el resto y el
+ * titulo terminaba partiendose en dos lineas. Queda solo el arbol.
  *
  * "Cerrar sesion" ya no vive aqui: estaba a 8px del avatar y sin confirmacion.
  * Ahora esta en Configuracion, que es donde se busca.
@@ -28,17 +27,9 @@ export default function Navbar() {
 
   return (
     <header className="nav-root">
-      {/* Marca solo en movil: centrada y con aire */}
-      <div className="nav-mark">
-        <Logo size={34} />
-      </div>
-
-      {/* Marca con nombre solo en escritorio */}
       <div className="nav-brand">
-        <Logo size={28} />
-        <span style={{ fontSize: "14px", fontWeight: 600, color: "var(--text)", whiteSpace: "nowrap" }}>
-          Mis Finanzas
-        </span>
+        <Logo size={34} />
+        <span className="nav-wordmark">Mis Finanzas</span>
       </div>
 
       <div className="nav-month">
@@ -93,20 +84,18 @@ export default function Navbar() {
           top: 0;
           z-index: 200;
           padding-top: env(safe-area-inset-top);
-          display: grid;
-          align-items: center;
-          /* Escritorio: un renglon, nombre · mes · acciones */
-          grid-template-columns: 1fr auto 1fr;
-          grid-template-areas: "brand month actions";
           height: calc(52px + env(safe-area-inset-top));
           padding-inline: 16px;
           column-gap: 12px;
+          display: grid;
+          align-items: center;
+          grid-template-columns: 1fr auto 1fr;
         }
 
-        .nav-mark    { grid-area: mark;    display: none; justify-content: center; }
-        .nav-brand   { grid-area: brand;   display: flex; align-items: center; gap: 10px; }
-        .nav-month   { grid-area: month;   display: flex; justify-content: center; }
-        .nav-actions { grid-area: actions; display: flex; align-items: center; justify-content: flex-end; gap: 4px; }
+        .nav-brand    { display: flex; align-items: center; gap: 10px; min-width: 0; }
+        .nav-wordmark { font-size: 14px; font-weight: 600; color: var(--text); white-space: nowrap; }
+        .nav-month    { display: flex; justify-content: center; }
+        .nav-actions  { display: flex; align-items: center; justify-content: flex-end; gap: 4px; }
 
         /* Area de toque de 44px: el icono no crece, crece la zona sensible */
         .nav-icon-btn {
@@ -119,20 +108,15 @@ export default function Navbar() {
 
         @media (max-width: 768px) {
           .nav-root {
-            /* Movil: dos renglones. Las columnas laterales miden igual (88px,
-               el ancho de los dos botones) para que el logo caiga en el centro. */
+            /* Columnas laterales iguales (ojo 44 + avatar 44) para que el mes
+               quede centrado. Con 8px de padding la pildora (178px) entra en
+               los 198 de la columna central. */
             grid-template-columns: 88px 1fr 88px;
-            grid-template-areas:
-              ".     mark  actions"
-              "month month month";
-            height: auto;
             padding-inline: 8px;
-            padding-bottom: 6px;
-            row-gap: 2px;
+            column-gap: 0;
           }
-          .nav-mark  { display: flex; }
-          .nav-brand { display: none; }
-          .nav-reg-btn { display: none !important; }
+          .nav-wordmark { display: none; }
+          .nav-reg-btn  { display: none !important; }
         }
       `}</style>
     </header>
