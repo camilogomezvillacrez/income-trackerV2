@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Logo from "@/components/common/Logo";
@@ -11,6 +11,48 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError]       = useState("");
   const [loading, setLoading]   = useState(false);
+
+  /*
+   * iOS presenta el panel de Face ID / autorrelleno y el teclado ENCIMA de la
+   * pagina, sin encoger el viewport de layout: por eso el campo enfocado queda
+   * detras. visualViewport si reporta el alto realmente visible, asi que con el
+   * se reserva ese hueco abajo (--overlay) para tener margen de scroll y se
+   * sube el campo por encima del panel.
+   */
+  useEffect(() => {
+    const vv = window.visualViewport;
+    const root = document.querySelector<HTMLElement>(".auth-screen");
+    if (!vv || !root) return;
+
+    let raf = 0;
+    const update = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        const covered = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+        root.style.setProperty("--overlay", `${covered}px`);
+
+        const el = document.activeElement;
+        if (!(el instanceof HTMLInputElement)) return;
+        const visibleBottom = vv.offsetTop + vv.height;
+        const over = el.getBoundingClientRect().bottom - (visibleBottom - 16);
+        if (over > 1) window.scrollBy({ top: over, behavior: "smooth" });
+      });
+    };
+
+    // Al enfocar, el panel aun se esta abriendo: se repasa cuando ya subio.
+    const onFocus = () => { update(); setTimeout(update, 350); };
+
+    vv.addEventListener("resize", update);
+    vv.addEventListener("scroll", update);
+    window.addEventListener("focusin", onFocus);
+    return () => {
+      cancelAnimationFrame(raf);
+      vv.removeEventListener("resize", update);
+      vv.removeEventListener("scroll", update);
+      window.removeEventListener("focusin", onFocus);
+      root.style.removeProperty("--overlay");
+    };
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -90,7 +132,11 @@ export default function LoginPage() {
           display: flex;
           flex-direction: column;
           background: linear-gradient(165deg, #DCEBDA 0%, #F4F6F1 45%, #C9DECB 100%);
-          padding: max(24px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom));
+          padding-top: max(24px, env(safe-area-inset-top));
+          padding-inline: 16px;
+          /* --overlay = lo que tapa el teclado/panel: reserva sitio para subir. */
+          padding-bottom: calc(max(24px, env(safe-area-inset-bottom)) + var(--overlay, 0px));
+          transition: padding-bottom 0.2s ease;
           position: relative;
         }
         .auth-deco { position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
