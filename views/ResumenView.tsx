@@ -2,13 +2,14 @@
 
 import dynamic from "next/dynamic";
 import KPICards from "@/components/dashboard/KPICards";
+import MetasCard from "@/components/dashboard/MetasCard";
 import RecordatoriosCard from "@/components/dashboard/RecordatoriosCard";
 import ExcelButton from "@/components/common/ExcelButton";
 import CategoryBars from "@/components/dashboard/CategoryBars";
 import AIRecommendations from "@/components/dashboard/AIRecommendations";
 import TransactionRow from "@/components/transactions/TransactionRow";
 import { useDashboardStore } from "@/store/dashboardStore";
-import { Download } from "lucide-react";
+import { Download, ChevronRight } from "lucide-react";
 import { exportCSV } from "@/lib/exportCSV";
 
 // Charts must be client-only (no SSR)
@@ -38,13 +39,16 @@ function Panel({ title, children, action }: { title: string; children: React.Rea
 }
 
 export default function ResumenView() {
-  const { data, loading } = useDashboardStore();
+  const { data, loading, setView } = useDashboardStore();
 
   return (
     <div>
       <RecordatoriosCard />
 
       <KPICards />
+
+      {/* Metas — salieron de la barra de abajo y viven aqui */}
+      <MetasCard />
 
       {/* Charts row 1 */}
       <div className="charts-row">
@@ -53,7 +57,17 @@ export default function ResumenView() {
             <ComboChart />
           </div>
         </Panel>
-        <Panel title="Distribución de gastos">
+        <Panel
+          title="Distribución de gastos"
+          action={
+            <button
+              onClick={() => setView("cats")}
+              style={{ display: "flex", alignItems: "center", gap: "2px", background: "none", border: "none", cursor: "pointer", fontFamily: "var(--font-sans)", fontSize: "11px", fontWeight: 600, color: "#4A7C59", padding: "4px 0" }}
+            >
+              Ver todas <ChevronRight size={13} />
+            </button>
+          }
+        >
           <div style={{ height: "180px" }}>
             <DonutChart />
           </div>

@@ -7,11 +7,14 @@ import { fmt } from "@/lib/utils";
 
 export default function DonutChart() {
   const data = useDashboardStore((s) => s.data);
+  const setView = useDashboardStore((s) => s.setView);
   if (!data?.by_category.length) return null;
 
   const cats = data.by_category.slice(0, 7);
   const chartData = cats.map((c) => ({
     name: `${CAT_META[c.category]?.emoji ?? ""} ${c.category}`,
+    // El nombre lleva emoji para la leyenda; se guarda el crudo para navegar.
+    cat: c.category,
     value: c.total,
     color: CAT_META[c.category]?.color ?? "#6B7280",
   }));
@@ -27,6 +30,12 @@ export default function DonutChart() {
           outerRadius="75%"
           dataKey="value"
           stroke="none"
+          // Categorias salio de la barra de abajo: se entra tocando aqui.
+          onClick={(entry) => {
+            const cat = (entry as unknown as { cat?: string })?.cat;
+            if (cat) setView(`cat-${cat}`);
+          }}
+          style={{ cursor: "pointer", outline: "none" }}
         >
           {chartData.map((entry, i) => (
             <Cell key={i} fill={entry.color + "CC"} stroke={entry.color} strokeWidth={2} />

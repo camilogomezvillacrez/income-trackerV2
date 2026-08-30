@@ -6,6 +6,7 @@ import { fmt } from "@/lib/utils";
 
 export default function CategoryBars() {
   const data = useDashboardStore((s) => s.data);
+  const setView = useDashboardStore((s) => s.setView);
   if (!data) return null;
 
   const { by_category, budgets } = data;
@@ -28,7 +29,11 @@ export default function CategoryBars() {
         const over = budget && c.total > budget;
 
         return (
-          <div key={c.category} style={{ marginBottom: "10px" }}>
+          <button
+            key={c.category}
+            onClick={() => setView(`cat-${c.category}`)}
+            style={{ display: "block", width: "100%", textAlign: "left", background: "none", border: "none", padding: 0, marginBottom: "10px", cursor: "pointer", fontFamily: "var(--font-sans)" }}
+          >
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
               <span style={{ fontSize: "11px", color: "var(--text)", fontWeight: 500 }}>
                 {meta.emoji} {c.category}
@@ -73,7 +78,7 @@ export default function CategoryBars() {
                 </span>
               </>
             )}
-          </div>
+          </button>
         );
       })}
     </div>

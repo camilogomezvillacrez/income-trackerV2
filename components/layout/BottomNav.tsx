@@ -1,6 +1,6 @@
 "use client";
 
-import { Home, ArrowLeftRight, Target, FolderOpen, Bot, HandCoins } from "lucide-react";
+import { Home, ArrowLeftRight, Bot, HandCoins } from "lucide-react";
 import { useDashboardStore } from "@/store/dashboardStore";
 import type { ViewType } from "@/types";
 
@@ -12,12 +12,18 @@ interface BnItem {
   id: string;
 }
 
+/*
+ * Cuatro destinos, no seis: en 390px seis items dejan 65px cada uno y las
+ * etiquetas no caben en su casilla. Estos son los de entrada diaria.
+ *
+ * Metas salio a una tarjeta en el Resumen (MetasCard) y Categorias se alcanza
+ * desde el donut de distribucion y las barras por categoria, que ya estaban
+ * ahi y no llevaban a ninguna parte.
+ */
 const ITEMS: BnItem[] = [
   { icon: <Home size={22} strokeWidth={1.8} />,            iconActive: <Home size={22} strokeWidth={2.5} />,            label: "Resumen",      view: "resumen",       id: "bn-resumen" },
   { icon: <ArrowLeftRight size={22} strokeWidth={1.8} />,  iconActive: <ArrowLeftRight size={22} strokeWidth={2.5} />,  label: "Movimientos",  view: "movimientos",   id: "bn-mov"     },
-  { icon: <Target size={22} strokeWidth={1.8} />,          iconActive: <Target size={22} strokeWidth={2.5} />,          label: "Metas",        view: "metas",         id: "bn-metas"   },
   { icon: <HandCoins size={22} strokeWidth={1.8} />,       iconActive: <HandCoins size={22} strokeWidth={2.5} />,       label: "Deudas",       view: "deudas",        id: "bn-deudas"  },
-  { icon: <FolderOpen size={22} strokeWidth={1.8} />,      iconActive: <FolderOpen size={22} strokeWidth={2.5} />,      label: "Categorías",   view: "cats",          id: "bn-cats"    },
   { icon: <Bot size={22} strokeWidth={1.8} />,             iconActive: <Bot size={22} strokeWidth={2.5} />,             label: "IA",           view: "asistente",     id: "bn-ia"      },
 ];
 
@@ -38,8 +44,7 @@ export default function BottomNav() {
       }}
     >
       {ITEMS.map((item) => {
-        const active = view === item.view
-          || (item.view === "cats" && view.startsWith("cat-"));
+        const active = view === item.view;
         return (
           <button
             key={item.id}
