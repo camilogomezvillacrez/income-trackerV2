@@ -42,13 +42,13 @@ export default function LoginPage() {
     // Al enfocar, el panel aun se esta abriendo: se repasa cuando ya subio.
     const onFocus = () => { update(); setTimeout(update, 350); };
 
+    // Sin "scroll": el handler desplaza, y escucharlo se pelea con el
+    // desplazamiento del usuario. Con resize y focusin basta.
     vv.addEventListener("resize", update);
-    vv.addEventListener("scroll", update);
     window.addEventListener("focusin", onFocus);
     return () => {
       cancelAnimationFrame(raf);
       vv.removeEventListener("resize", update);
-      vv.removeEventListener("scroll", update);
       window.removeEventListener("focusin", onFocus);
       root.style.removeProperty("--overlay");
     };

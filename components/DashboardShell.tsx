@@ -49,25 +49,30 @@ export default function DashboardShell({ userEmail }: { userEmail: string }) {
     if (!vv) return;
     const root = document.documentElement;
     let raf = 0;
+    let last = 0;
 
     const update = () => {
       cancelAnimationFrame(raf);
       raf = requestAnimationFrame(() => {
-        root.style.setProperty("--app-h", `${Math.round(vv.height)}px`);
+        const h = Math.round(vv.height);
+        // Solo se escribe si cambio de verdad: reescribir el alto en cada
+        // evento provoca un relayout por pulsacion y la pantalla titila.
+        if (Math.abs(h - last) > 1) {
+          last = h;
+          root.style.setProperty("--app-h", `${h}px`);
+        }
         // Umbral generoso: la barra del navegador tambien cambia vv.height.
-        root.classList.toggle("kb-open", window.innerHeight - vv.height > 120);
-        // Con el shell ya ajustado, el desplazamiento que hizo iOS sobra.
-        if (window.scrollY > 0) window.scrollTo(0, 0);
+        root.classList.toggle("kb-open", window.innerHeight - h > 120);
       });
     };
 
     update();
+    // Solo "resize": el teclado cambia el alto ahi. Escuchar "scroll" (y peor,
+    // corregirlo con scrollTo) se pelea con el desplazamiento del usuario.
     vv.addEventListener("resize", update);
-    vv.addEventListener("scroll", update);
     return () => {
       cancelAnimationFrame(raf);
       vv.removeEventListener("resize", update);
-      vv.removeEventListener("scroll", update);
       root.style.removeProperty("--app-h");
       root.classList.remove("kb-open");
     };
