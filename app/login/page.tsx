@@ -38,78 +38,107 @@ export default function LoginPage() {
   }
 
   return (
-    <div style={{ minHeight: "100dvh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "clamp(20px, 5vh, 40px)", background: "linear-gradient(165deg, #DCEBDA 0%, #F4F6F1 45%, #C9DECB 100%)", padding: "28px 16px", position: "relative", overflow: "hidden" }}>
-      {/* Decoración de fondo */}
-      <div style={{ position: "absolute", width: "320px", height: "320px", borderRadius: "50%", background: "radial-gradient(circle, rgba(74,124,89,0.20), transparent 70%)", top: "-80px", right: "-60px" }} />
-      <div style={{ position: "absolute", width: "380px", height: "380px", borderRadius: "50%", background: "radial-gradient(circle, rgba(74,124,89,0.16), transparent 70%)", bottom: "-120px", left: "-100px" }} />
+    /* .auth-screen: globals.css la exime del bloqueo de scroll movil, para que
+       el panel de Face ID / autorrelleno no deje el contenido atrapado arriba. */
+    <div className="auth-screen">
+      {/* Decoración: capa aparte y fija, así el contenedor no necesita
+          overflow:hidden (que es lo que impedía scrollear). */}
+      <div aria-hidden className="auth-deco">
+        <span style={{ width: "320px", height: "320px", background: "radial-gradient(circle, rgba(74,124,89,0.20), transparent 70%)", top: "-80px", right: "-60px" }} />
+        <span style={{ width: "380px", height: "380px", background: "radial-gradient(circle, rgba(74,124,89,0.16), transparent 70%)", bottom: "-120px", left: "-100px" }} />
+      </div>
 
-      {/* Cabecera: el logo sale de la tarjeta y aprovecha el aire de arriba */}
-      <header style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", position: "relative" }}>
-        <div className="login-logo">
-          <Logo size={144} />
+      {/* margin:auto centra pero, a diferencia de justify-content:center,
+          no recorta el contenido cuando el viewport se encoge. */}
+      <div className="auth-body">
+        <header className="auth-header">
+          <div className="login-logo">
+            <Logo size={168} draw />
+          </div>
+          <div className="login-title">Mis Finanzas</div>
+          <div className="login-sub">Inicia sesión en tu cuenta</div>
+        </header>
+
+        <div className="login-card">
+          <form onSubmit={handleSubmit}>
+            <Field label="Email">
+              <input type="email" name="email" autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="tu@email.com" style={inputStyle(!!error)} />
+            </Field>
+            <Field label="Contraseña">
+              <input type="password" name="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" style={inputStyle(!!error)} />
+            </Field>
+
+            {error && <p style={{ fontSize: "12px", color: "var(--red)", marginBottom: "12px" }}>{error}</p>}
+
+            <button type="submit" disabled={loading} style={btnStyle(loading)}>
+              {loading ? "Entrando..." : "Entrar"}
+            </button>
+          </form>
+
+          <p style={{ textAlign: "center", fontSize: "12px", color: "var(--muted)", marginTop: "20px" }}>
+            ¿No tienes cuenta?{" "}
+            <Link href="/register" style={{ color: "#4A7C59", fontWeight: 700, textDecoration: "none" }}>
+              Regístrate
+            </Link>
+          </p>
         </div>
-        <div className="login-title" style={{ fontSize: "clamp(27px, 7.5vw, 33px)", fontWeight: 700, color: "var(--text)", marginTop: "16px", letterSpacing: "-0.02em" }}>
-          Mis Finanzas
-        </div>
-        <div className="login-sub" style={{ fontSize: "13.5px", color: "#4A7C59", fontWeight: 500, marginTop: "4px" }}>
-          Inicia sesión en tu cuenta
-        </div>
-      </header>
-
-      <div className="login-card" style={{ background: "var(--white)", border: "1px solid #D8E3D6", borderRadius: "18px", padding: "26px 28px 28px", width: "100%", maxWidth: "380px", boxShadow: "0 14px 44px rgba(58,94,68,.20)", position: "relative" }}>
-        <form onSubmit={handleSubmit}>
-          <Field label="Email">
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="tu@email.com" autoFocus style={inputStyle(!!error)} />
-          </Field>
-          <Field label="Contraseña">
-            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" style={inputStyle(!!error)} />
-          </Field>
-
-          {error && <p style={{ fontSize: "12px", color: "var(--red)", marginBottom: "12px" }}>{error}</p>}
-
-          <button type="submit" disabled={loading} style={btnStyle(loading)}>
-            {loading ? "Entrando..." : "Entrar"}
-          </button>
-        </form>
-
-        <p style={{ textAlign: "center", fontSize: "12px", color: "var(--muted)", marginTop: "20px" }}>
-          ¿No tienes cuenta?{" "}
-          <Link href="/register" style={{ color: "#4A7C59", fontWeight: 700, textDecoration: "none" }}>
-            Regístrate
-          </Link>
-        </p>
       </div>
 
       <style>{`
-        /* El tamaño real del logo lo manda el CSS: escala con la pantalla */
-        .login-logo img {
-          width: clamp(118px, 34vw, 152px);
-          height: auto;
+        .auth-screen {
+          min-height: 100dvh;
+          display: flex;
+          flex-direction: column;
+          background: linear-gradient(165deg, #DCEBDA 0%, #F4F6F1 45%, #C9DECB 100%);
+          padding: max(24px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom));
+          position: relative;
         }
-        .login-logo {
-          animation: login-pop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both,
-                     login-float 3.4s ease-in-out 0.7s infinite;
+        .auth-deco { position: fixed; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
+        .auth-deco span { position: absolute; border-radius: 50%; display: block; }
+
+        .auth-body {
+          margin: auto;               /* centra sin recortar al encogerse */
+          width: 100%;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: clamp(18px, 4.5vh, 36px);
+          position: relative;
+          z-index: 1;
         }
-        @keyframes login-pop {
-          0%   { transform: scale(0.55); opacity: 0; }
-          100% { transform: scale(1);    opacity: 1; }
+        .auth-header { display: flex; flex-direction: column; align-items: center; text-align: center; }
+
+        .login-logo svg { width: clamp(140px, 42vw, 184px); height: auto; }
+
+        .login-title {
+          font-size: clamp(27px, 7.5vw, 33px);
+          font-weight: 700;
+          color: var(--text);
+          margin-top: 14px;
+          letter-spacing: -0.02em;
         }
-        @keyframes login-float {
-          0%, 100% { transform: translateY(0); }
-          50%      { transform: translateY(-9px); }
+        .login-sub { font-size: 13.5px; color: #4A7C59; font-weight: 500; margin-top: 4px; }
+
+        .login-card {
+          background: var(--white);
+          border: 1px solid #D8E3D6;
+          border-radius: 18px;
+          padding: 26px 28px 28px;
+          width: 100%;
+          max-width: 380px;
+          box-shadow: 0 14px 44px rgba(58,94,68,.20);
         }
 
-        /* Entrada escalonada del resto */
-        .login-title { animation: login-rise 0.5s ease-out 0.18s both; }
-        .login-sub   { animation: login-rise 0.5s ease-out 0.28s both; }
-        .login-card  { animation: login-rise 0.55s ease-out 0.36s both; }
+        /* El árbol se dibuja solo (TreeMark); el resto entra por detrás. */
+        .login-title { animation: login-rise 0.5s ease-out 0.50s both; }
+        .login-sub   { animation: login-rise 0.5s ease-out 0.62s both; }
+        .login-card  { animation: login-rise 0.55s ease-out 0.75s both; }
         @keyframes login-rise {
           0%   { opacity: 0; transform: translateY(14px); }
           100% { opacity: 1; transform: none; }
         }
-
         @media (prefers-reduced-motion: reduce) {
-          .login-logo, .login-title, .login-sub, .login-card { animation: none !important; }
+          .login-title, .login-sub, .login-card { animation: none; }
         }
       `}</style>
     </div>
@@ -127,7 +156,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 const inputStyle = (hasError: boolean): React.CSSProperties => ({
   width: "100%", background: "var(--bg)", border: `1px solid ${hasError ? "var(--red)" : "var(--border)"}`,
-  borderRadius: "8px", padding: "10px 12px", fontSize: "14px", fontFamily: "var(--font-sans)",
+  borderRadius: "8px", padding: "10px 12px", fontSize: "16px", fontFamily: "var(--font-sans)",
   color: "var(--text)", outline: "none",
 });
 
