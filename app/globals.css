@@ -150,6 +150,12 @@ body {
 }
 .view-animate {
   animation: view-enter 0.22s ease-out both;
+  /* Alto definido para que las vistas que piden height:100% (el chat) lo
+     puedan resolver: sin esto el porcentaje cae a auto y la tarjeta se queda
+     del tamano de su contenido, dejando un hueco hasta la barra de abajo.
+     Las vistas mas altas que la pantalla siguen desbordando y .shell-main,
+     que es el contenedor con scroll, las desplaza igual. */
+  height: 100%;
 }
 
 /* ── Mobile layout ───────────────────────────────────────── */
