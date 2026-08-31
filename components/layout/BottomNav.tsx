@@ -37,23 +37,47 @@ export default function BottomNav() {
    * desplazar iOS la vista para mostrar el campo, la arrastra hacia arriba y
    * acaba flotando sobre el teclado. Mientras se escribe, se retira.
    *
+   * Se detecta por el foco, no midiendo el viewport: instalada en la pantalla
+   * de inicio, la ventana se encoge junto con el teclado, asi que
+   * innerHeight y visualViewport.height bajan a la vez y su diferencia no
+   * delata nada. Que haya un campo de texto enfocado si es inequivoco.
+   *
    * Vive aqui dentro a proposito: no toca el alto del body, ni el scroll, ni
    * ninguna otra pantalla.
    */
-  const [kbOpen, setKbOpen] = useState(false);
+  const [typing, setTyping] = useState(false);
 
   useEffect(() => {
-    const vv = window.visualViewport;
-    if (!vv) return;
-    // Umbral generoso: la barra del navegador tambien cambia vv.height, y solo
-    // el teclado se acerca a estos valores.
-    const update = () => setKbOpen(window.innerHeight - vv.height > 150);
-    update();
-    vv.addEventListener("resize", update);
-    return () => vv.removeEventListener("resize", update);
+    // Tipos de input que no abren teclado.
+    const SIN_TECLADO = new Set([
+      "button", "submit", "reset", "checkbox", "radio",
+      "range", "color", "file", "image",
+    ]);
+
+    const abreTeclado = (el: Element | null) => {
+      if (!(el instanceof HTMLElement)) return false;
+      if (el.isContentEditable) return true;
+      if (el instanceof HTMLTextAreaElement) return true;
+      if (el instanceof HTMLInputElement) return !SIN_TECLADO.has(el.type);
+      return false;
+    };
+
+    const onIn  = (e: FocusEvent) => { if (abreTeclado(e.target as Element)) setTyping(true); };
+    const onOut = () => {
+      // El foco viaja de un campo a otro pasando por el body: se comprueba
+      // despues, ya con el foco asentado.
+      setTimeout(() => setTyping(abreTeclado(document.activeElement)), 0);
+    };
+
+    document.addEventListener("focusin", onIn);
+    document.addEventListener("focusout", onOut);
+    return () => {
+      document.removeEventListener("focusin", onIn);
+      document.removeEventListener("focusout", onOut);
+    };
   }, []);
 
-  if (kbOpen) return null;
+  if (typing) return null;
 
   return (
     <nav
