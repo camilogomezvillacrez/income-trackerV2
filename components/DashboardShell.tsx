@@ -35,49 +35,6 @@ export default function DashboardShell({ userEmail }: { userEmail: string }) {
 
   useEffect(() => { setUserEmail(userEmail); }, [userEmail]);
 
-  /*
-   * iOS abre el teclado ENCIMA de la pagina: el viewport de layout no se
-   * encoge, asi que el shell sigue midiendo la pantalla entera y debajo del
-   * contenido queda un hueco muerto (se ve sobre todo en el chat).
-   *
-   * visualViewport si reporta el alto realmente visible. Se publica en
-   * --app-h, que globals.css usa como alto del body en movil, y se marca
-   * .kb-open mientras el teclado esta arriba.
-   */
-  useEffect(() => {
-    const vv = window.visualViewport;
-    if (!vv) return;
-    const root = document.documentElement;
-    let raf = 0;
-    let last = 0;
-
-    const update = () => {
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(() => {
-        const h = Math.round(vv.height);
-        // Solo se escribe si cambio de verdad: reescribir el alto en cada
-        // evento provoca un relayout por pulsacion y la pantalla titila.
-        if (Math.abs(h - last) > 1) {
-          last = h;
-          root.style.setProperty("--app-h", `${h}px`);
-        }
-        // Umbral generoso: la barra del navegador tambien cambia vv.height.
-        root.classList.toggle("kb-open", window.innerHeight - h > 120);
-      });
-    };
-
-    update();
-    // Solo "resize": el teclado cambia el alto ahi. Escuchar "scroll" (y peor,
-    // corregirlo con scrollTo) se pelea con el desplazamiento del usuario.
-    vv.addEventListener("resize", update);
-    return () => {
-      cancelAnimationFrame(raf);
-      vv.removeEventListener("resize", update);
-      root.style.removeProperty("--app-h");
-      root.classList.remove("kb-open");
-    };
-  }, []);
-
   useDashboard();
 
   const { view, modal, openModal, reportMonth } = useDashboardStore();
@@ -151,10 +108,6 @@ export default function DashboardShell({ userEmail }: { userEmail: string }) {
         @media (max-width: 768px) {
           .shell-sidebar    { display: none; }
           .shell-bottom-nav { display: flex; flex-shrink: 0; }
-          /* Mientras se escribe, la barra de abajo cede su sitio: en el chat
-             son 68px de los ~280 que deja el teclado. */
-          .kb-open .shell-bottom-nav { display: none; }
-          .kb-open .shell-fab        { display: none; }
           .shell-fab        { display: flex; }
           .shell-main       { padding: 12px; overflow-y: auto; flex: 1; }
         }

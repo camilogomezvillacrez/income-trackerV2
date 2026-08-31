@@ -161,10 +161,7 @@ body {
 /* ── Mobile layout ───────────────────────────────────────── */
 @media (max-width: 768px) {
   body {
-    /* --app-h lo publica DashboardShell desde visualViewport: es el alto
-       realmente visible. Sin el, el teclado de iOS deja un hueco muerto
-       debajo del contenido porque el viewport de layout no se encoge. */
-    height: var(--app-h, 100svh);
+    height: 100svh;
     overflow: hidden;
   }
   /* Las pantallas de login/registro se salen de este bloqueo: cuando iOS abre

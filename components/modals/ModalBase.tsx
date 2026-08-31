@@ -26,12 +26,7 @@ export default function ModalBase({ title, children, maxWidth = 480 }: Props) {
       onClick={(e) => { if (e.target === e.currentTarget) closeModal(); }}
       style={{
         position: "fixed",
-        insetInline: 0,
-        top: 0,
-        /* --app-h es el alto realmente visible (lo publica DashboardShell).
-           Con inset:0 el overlay cubre la pantalla entera y centra la tarjeta
-           detras del teclado; asi se centra en lo que se ve. */
-        height: "var(--app-h, 100dvh)",
+        inset: 0,
         background: "rgba(0,0,0,.45)",
         zIndex: 300,
         display: "flex",
@@ -47,11 +42,8 @@ export default function ModalBase({ title, children, maxWidth = 480 }: Props) {
           padding: "24px",
           width: "100%",
           maxWidth,
-          /* 90vh medía la pantalla completa e ignoraba el teclado: los campos
-             de abajo quedaban detras y no habia nada que desplazar. */
-          maxHeight: "calc(var(--app-h, 100dvh) - 32px)",
+          maxHeight: "90vh",
           overflowY: "auto",
-          overscrollBehavior: "contain",
         }}
       >
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "18px" }}>
