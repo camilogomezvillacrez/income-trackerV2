@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+
 import { Home, ArrowLeftRight, Bot, HandCoins } from "lucide-react";
 import { useDashboardStore } from "@/store/dashboardStore";
 import type { ViewType } from "@/types";
@@ -29,6 +31,29 @@ const ITEMS: BnItem[] = [
 
 export default function BottomNav() {
   const { view, setView } = useDashboardStore();
+
+  /*
+   * Con el teclado abierto la barra se subia: el shell es una columna y, al
+   * desplazar iOS la vista para mostrar el campo, la arrastra hacia arriba y
+   * acaba flotando sobre el teclado. Mientras se escribe, se retira.
+   *
+   * Vive aqui dentro a proposito: no toca el alto del body, ni el scroll, ni
+   * ninguna otra pantalla.
+   */
+  const [kbOpen, setKbOpen] = useState(false);
+
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    // Umbral generoso: la barra del navegador tambien cambia vv.height, y solo
+    // el teclado se acerca a estos valores.
+    const update = () => setKbOpen(window.innerHeight - vv.height > 150);
+    update();
+    vv.addEventListener("resize", update);
+    return () => vv.removeEventListener("resize", update);
+  }, []);
+
+  if (kbOpen) return null;
 
   return (
     <nav
