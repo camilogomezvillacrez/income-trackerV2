@@ -8,8 +8,9 @@ export async function POST() {
   if (!user) return unauthorized();
 
   const sent = await sendPushToUser(user.userId, {
-    title: "Mis Finanzas",
-    body: "✓ Las notificaciones funcionan en este dispositivo",
+    // Sin repetir el nombre de la app: iOS ya añade "from <nombre>" debajo del título
+    title: "✓ Notificaciones activadas",
+    body: "Así te llegarán los avisos de tus gastos automáticos",
     tag: "test",
   });
   return NextResponse.json({ sent });
