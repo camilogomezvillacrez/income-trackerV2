@@ -21,7 +21,7 @@ export default function Money({ value, color, prefix = "", style, className }: P
         fontFamily: "var(--font-mono)",
         fontVariantNumeric: "tabular-nums",
         color,
-        letterSpacing: privacy ? "0.1em" : undefined,
+        letterSpacing: privacy ? "0.1em" : "-0.01em",
         ...style,
       }}
     >

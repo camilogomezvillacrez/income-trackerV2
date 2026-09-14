@@ -6,7 +6,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function fmt(n: number): string {
-  return "$" + Math.round(n).toLocaleString("es-CO");
+  return "$ " + Math.round(n).toLocaleString("es-CO");
 }
 
 export function currentMonth(): string {

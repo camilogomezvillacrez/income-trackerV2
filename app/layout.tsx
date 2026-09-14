@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Fira_Code } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import ServiceWorker from "@/components/common/ServiceWorker";
 
@@ -10,12 +10,8 @@ const inter = Inter({
   display: "swap",
 });
 
-const firaCode = Fira_Code({
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  variable: "--font-mono",
-  display: "swap",
-});
+// Los montos usan la fuente del sistema (ver --font-mono en globals.css):
+// no se descarga ninguna fuente monoespaciada.
 
 export const metadata: Metadata = {
   title: "Mis Finanzas",
@@ -34,7 +30,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="es" className={`${inter.variable} ${firaCode.variable} h-full`}>
+    <html lang="es" className={`${inter.variable} h-full`}>
       <body className="min-h-full flex flex-col antialiased">
         {children}
         <ServiceWorker />

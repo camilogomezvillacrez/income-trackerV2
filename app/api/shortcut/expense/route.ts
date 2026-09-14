@@ -12,7 +12,7 @@ import { EXP_CATS, SUBCATS } from "@/constants/categories";
  * Cuerpo: { amount: "$45.900,00", merchant: "Éxito", card: "Visa" }
  */
 
-const fmt = (n: number) => `$${n.toLocaleString("es-CO", { maximumFractionDigits: 2 })}`;
+const fmt = (n: number) => `$ ${n.toLocaleString("es-CO", { maximumFractionDigits: 2 })}`;
 
 /** Comercio desconocido para las reglas: Claude elige entre las categorías de la app. */
 async function categorizeWithAI(merchant: string) {

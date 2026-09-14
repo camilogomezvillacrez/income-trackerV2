@@ -60,7 +60,9 @@
   --color-sage: var(--sage);
 
   --font-sans: "Inter", system-ui, sans-serif;
-  --font-mono: "Fira Code", "Fira Mono", monospace;
+  /* Fuente de los montos: la del sistema (SF Pro en iPhone/Mac), con cifras de
+     ancho fijo vía tabular-nums. Se conserva el nombre para no tocar cada uso. */
+  --font-mono: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", system-ui, sans-serif;
 
   --radius-sm: 6px;
   --radius-md: 8px;
@@ -105,6 +107,7 @@ body {
 .font-numeric {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
 }
 
 /* ── Toast ───────────────────────────────────────────────── */
