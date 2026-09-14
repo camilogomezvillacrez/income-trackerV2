@@ -8,7 +8,7 @@ import ToastContainer from "@/components/common/Toast";
 import SplashScreen from "@/components/common/SplashScreen";
 import LockScreen from "@/components/common/LockScreen";
 import { useDashboard, markActive } from "@/hooks/useDashboard";
-import { logout } from "@/lib/clientAuth";
+import { isUnlockedThisLaunch, logout, markUnlocked } from "@/lib/clientAuth";
 import { useDashboardStore } from "@/store/dashboardStore";
 
 import ResumenView from "@/views/ResumenView";
@@ -48,10 +48,13 @@ export default function DashboardShell({ userEmail, hasPasskey, initiallyLocked 
   // Estado de sesión cargado antes del primer render: la caché local se lee
   // con el email correcto y la app bloqueada nunca llega a mostrar datos.
   // Solo en el navegador: en el servidor el store es compartido entre usuarios.
+  // Además de la inactividad, con Face ID se bloquea cada arranque en frío
+  // (la app se cerró desde la multitarea): no hay marca de esta apertura.
   useState(() => {
-    if (typeof window !== "undefined") {
-      useDashboardStore.setState({ userEmail, hasPasskey, locked: initiallyLocked });
-    }
+    if (typeof window === "undefined") return;
+    const locked = initiallyLocked || (hasPasskey && !isUnlockedThisLaunch());
+    if (!locked) markUnlocked();
+    useDashboardStore.setState({ userEmail, hasPasskey, locked });
   });
 
   // Hasta hidratar se usa el valor del servidor, así el HTML y la hidratación coinciden
@@ -78,7 +81,7 @@ export default function DashboardShell({ userEmail, hasPasskey, initiallyLocked 
         <LockScreen
           mode="unlock"
           email={userEmail}
-          onSuccess={() => { markActive(); useDashboardStore.getState().setLocked(false); }}
+          onSuccess={() => { markActive(); markUnlocked(); useDashboardStore.getState().setLocked(false); }}
           onUsePassword={() => logout("/login?password=1")}
         />
       ) : (

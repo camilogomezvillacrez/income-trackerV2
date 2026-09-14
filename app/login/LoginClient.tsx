@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Logo from "@/components/common/Logo";
 import LockScreen from "@/components/common/LockScreen";
+import { markUnlocked } from "@/lib/clientAuth";
 
 export default function LoginClient({ initialLock }: { initialLock: boolean }) {
   const router = useRouter();
@@ -69,6 +70,8 @@ export default function LoginClient({ initialLock }: { initialLock: boolean }) {
       });
 
       if (res.ok) {
+        // Recién autenticado: que la app no pida Face ID otra vez al entrar
+        markUnlocked();
         router.push("/");
         router.refresh();
       } else {
@@ -85,7 +88,7 @@ export default function LoginClient({ initialLock }: { initialLock: boolean }) {
     return (
       <LockScreen
         mode="login"
-        onSuccess={() => { window.location.href = "/"; }}
+        onSuccess={() => { markUnlocked(); window.location.href = "/"; }}
         onUsePassword={() => setShowLock(false)}
       />
     );

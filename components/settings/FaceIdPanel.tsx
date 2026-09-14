@@ -72,7 +72,7 @@ export default function FaceIdPanel() {
       </div>
       <p style={{ fontSize: "12px", color: "var(--muted)", marginBottom: "14px", lineHeight: 1.6 }}>
         {hasPasskey
-          ? "La sesión dura 30 días. Tras 3 minutos sin usar la app se bloquea y la abres con Face ID."
+          ? "La sesión dura 30 días. La app se bloquea al abrirla de nuevo después de cerrarla y tras 3 minutos sin usarla; se abre con Face ID."
           : "Sin Face ID, tras 3 minutos sin usar la app tienes que volver a iniciar sesión. Actívalo en cada dispositivo donde uses la app."}
       </p>
 
