@@ -60,5 +60,5 @@ export async function POST(req: NextRequest) {
   session.challenge    = undefined;
   await session.save();
 
-  return setPasskeyHint(NextResponse.json({ ok: true }));
+  return setPasskeyHint(NextResponse.json({ ok: true }), [stored.id]);
 }

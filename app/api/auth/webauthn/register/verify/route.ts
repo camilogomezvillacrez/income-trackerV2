@@ -53,5 +53,5 @@ export async function POST(req: NextRequest) {
   session.hasPasskey = true;
   await session.save();
 
-  return setPasskeyHint(NextResponse.json({ ok: true }));
+  return setPasskeyHint(NextResponse.json({ ok: true }), [credential.id]);
 }

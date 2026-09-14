@@ -10,7 +10,8 @@ import type { PublicKeyCredentialRequestOptionsJSON } from "@simplewebauthn/brow
  * - "unlock": la app quedó inactiva; la sesión existe y solo se renueva.
  * - "login":  no hay sesión (p. ej. se perdió la cookie); Face ID la crea.
  * Las opciones de WebAuthn se piden por adelantado: Safari exige que Face ID
- * se lance directo desde el toque, sin esperar a la red entre medio.
+ * se lance directo desde el toque, sin esperar a la red entre medio; si no,
+ * muestra su propia hoja de confirmación antes de Face ID.
  */
 const ENDPOINTS = {
   unlock: "/api/auth/webauthn/authenticate",
@@ -70,16 +71,14 @@ export default function LockScreen({ mode, email, onSuccess, onUsePassword }: Pr
     }
   }
 
-  // Prepara el reto y lanza Face ID al abrir (iOS lo permite en la carga;
-  // si no, queda el botón).
-  const tried = useRef(false);
+  // Solo se prepara el reto al abrir; Face ID se lanza con el toque en
+  // "Desbloquear". Sin toque, Safari antepone la hoja "¿Usar llave de acceso?"
+  // y obliga a un paso extra.
+  const prepared = useRef(false);
   useEffect(() => {
-    if (tried.current) return;
-    tried.current = true;
-    fetchOptions().then((o) => {
-      options.current = o;
-      if (o) unlock();
-    });
+    if (prepared.current) return;
+    prepared.current = true;
+    fetchOptions().then((o) => { options.current = o; });
   }, []);
 
   return (

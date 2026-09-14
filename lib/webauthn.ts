@@ -4,14 +4,24 @@ import { getDb } from "./db";
 export const RP_NAME = "Mis Finanzas";
 
 /*
- * Cookie de aviso "este dispositivo tiene Face ID". No da acceso a nada: solo
- * le dice al login que muestre la pantalla de bloqueo en vez del formulario,
- * aunque la cookie de sesión se haya perdido.
+ * Cookie de aviso "este dispositivo tiene Face ID". No da acceso a nada: le
+ * dice al login que muestre la pantalla de bloqueo en vez del formulario, y
+ * guarda los IDs de las passkeys para pedírselas a Safari por nombre (así no
+ * muestra la hoja "¿Usar llave de acceso?" y va directo a Face ID).
+ * Los IDs de credencial no son secretos: sin el Face ID del dueño no sirven.
  */
 export const PASSKEY_HINT_COOKIE = "fin_passkey";
 
-export function setPasskeyHint<T extends NextResponse>(res: T): T {
-  res.cookies.set(PASSKEY_HINT_COOKIE, "1", {
+const CREDENTIAL_ID = /^[A-Za-z0-9_-]{16,512}$/;
+
+/** IDs de passkey guardados en la cookie de aviso (vacío si es el formato viejo "1"). */
+export function readPasskeyHint(value: string | undefined): string[] {
+  return (value ?? "").split(",").filter((id) => CREDENTIAL_ID.test(id)).slice(0, 10);
+}
+
+export function setPasskeyHint<T extends NextResponse>(res: T, credentialIds: string[]): T {
+  const ids = credentialIds.filter((id) => CREDENTIAL_ID.test(id)).slice(0, 10);
+  res.cookies.set(PASSKEY_HINT_COOKIE, ids.join(",") || "1", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",

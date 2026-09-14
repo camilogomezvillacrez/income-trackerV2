@@ -3,7 +3,7 @@ import { compareSync } from "bcryptjs";
 import { getSession } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 import { checkRateLimit, resetRateLimit } from "@/lib/rateLimit";
-import { setPasskeyHint, userHasPasskey } from "@/lib/webauthn";
+import { getCredentials, setPasskeyHint } from "@/lib/webauthn";
 
 export async function POST(req: NextRequest) {
   // ── Rate limiting por IP ────────────────────────────────────
@@ -50,10 +50,12 @@ export async function POST(req: NextRequest) {
   session.userId       = Number(user!.id);
   session.email        = email.toLowerCase().trim();
   session.lastActivity = Date.now();
-  session.hasPasskey   = await userHasPasskey(session.userId);
+  // Si la tabla aún no existe se trata como "sin Face ID"
+  const passkeys = await getCredentials(session.userId).catch(() => []);
+  session.hasPasskey   = passkeys.length > 0;
   await session.save();
 
   // Con Face ID, la próxima vez el login abre directo en la pantalla de bloqueo
   const response = NextResponse.json({ ok: true });
-  return session.hasPasskey ? setPasskeyHint(response) : response;
+  return session.hasPasskey ? setPasskeyHint(response, passkeys.map((c) => c.id)) : response;
 }
