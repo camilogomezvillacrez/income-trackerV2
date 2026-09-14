@@ -2,7 +2,7 @@
 
 import { Pencil, Trash2 } from "lucide-react";
 import type { Movement } from "@/types";
-import { CAT_META } from "@/constants/categories";
+import { CAT_META, paymentMeta } from "@/constants/categories";
 import { useDashboardStore } from "@/store/dashboardStore";
 import Money from "@/components/common/Money";
 import { useRef } from "react";
@@ -22,7 +22,7 @@ export default function TransactionRow({ r }: Props) {
 
   const pmLabel =
     !isInc && r.payment_method && r.payment_method !== "Efectivo"
-      ? ` · ${r.payment_method === "Visa Crédito" ? "💳 Visa" : "🟣 Nu"}`
+      ? ` · ${paymentMeta(r.payment_method).emoji} ${paymentMeta(r.payment_method).short}`
       : "";
   const catLabel = r.subcategory
     ? `${meta.emoji} ${r.category} · ${r.subcategory}`

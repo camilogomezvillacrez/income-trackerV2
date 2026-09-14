@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import ModalBase from "./ModalBase";
 import { useDashboardStore, useToastStore } from "@/store/dashboardStore";
-import { CAT_META, EXP_CATS, INC_CATS, SUBCATS, SUBCAT_EMOJIS, PAYMENT_METHODS, type PaymentMethod } from "@/constants/categories";
+import { CAT_META, EXP_CATS, INC_CATS, SUBCATS, SUBCAT_EMOJIS, PAYMENT_METHODS, PAYMENT_META, type PaymentMethod } from "@/constants/categories";
 import type { MovementType } from "@/types";
 
 function CategoryGrid({ cats, selected, onSelect }: { cats: readonly string[]; selected: string | null; onSelect: (c: string) => void }) {
@@ -122,10 +122,11 @@ export default function EditModal() {
       {tipo === "gasto" && (
         <div style={{ marginBottom: "14px" }}>
           <label style={labelStyle}>Pagado con</label>
-          <div style={{ display: "flex", gap: "6px" }}>
+          {/* 2×2: con 4 métodos en fila, "American Express" partía en dos líneas en el móvil */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px" }}>
             {PAYMENT_METHODS.map((method) => (
               <button key={method} onClick={() => setPm(method)} style={{ flex: 1, padding: "8px 6px", border: `1.5px solid ${pm === method ? "var(--text)" : "var(--border)"}`, borderRadius: "8px", background: pm === method ? "#EEF2FF" : "var(--bg)", fontSize: "11px", fontWeight: 600, color: pm === method ? "var(--text)" : "var(--sub)", cursor: "pointer", fontFamily: "var(--font-sans)", textAlign: "center", transition: "all 0.15s" }}>
-                {method === "Efectivo" ? "💵" : method === "Visa Crédito" ? "💳" : "🟣"} {method}
+                {PAYMENT_META[method].emoji} {method}
               </button>
             ))}
           </div>

@@ -88,5 +88,18 @@ export const SUBCAT_EMOJIS: Record<string, Record<string, string>> = {
   "Pólizas":          { "Póliza de salud":"🏥", "Póliza de vida":"💙", "Seguro mascota":"🐾", "Seguro funerario":"⚰️" },
 };
 
-export const PAYMENT_METHODS = ["Efectivo", "Visa Crédito", "Nu Crédito"] as const;
+export const PAYMENT_METHODS = ["Efectivo", "Visa Crédito", "Nu Crédito", "American Express"] as const;
 export type PaymentMethod = (typeof PAYMENT_METHODS)[number];
+
+/** Emoji y nombre corto de cada método (lista de movimientos, botones de los modales). */
+export const PAYMENT_META: Record<PaymentMethod, { emoji: string; short: string }> = {
+  "Efectivo":         { emoji: "💵", short: "Efectivo" },
+  "Visa Crédito":     { emoji: "💳", short: "Visa" },
+  "Nu Crédito":       { emoji: "🟣", short: "Nu" },
+  "American Express": { emoji: "🔷", short: "Amex" },
+};
+
+/** Métodos que no están en la lista (p. ej. el nombre de tarjeta que manda Apple Pay) usan 💳 y su propio nombre. */
+export function paymentMeta(method: string | null | undefined) {
+  return PAYMENT_META[method as PaymentMethod] ?? { emoji: "💳", short: method ?? "" };
+}

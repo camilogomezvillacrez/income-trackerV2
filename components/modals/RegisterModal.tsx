@@ -3,7 +3,7 @@
 import { useState } from "react";
 import ModalBase from "./ModalBase";
 import { useDashboardStore, useToastStore } from "@/store/dashboardStore";
-import { CAT_META, EXP_CATS, INC_CATS, SUBCATS, SUBCAT_EMOJIS, PAYMENT_METHODS, type PaymentMethod } from "@/constants/categories";
+import { CAT_META, EXP_CATS, INC_CATS, SUBCATS, SUBCAT_EMOJIS, PAYMENT_METHODS, PAYMENT_META, type PaymentMethod } from "@/constants/categories";
 import { todayDate } from "@/lib/utils";
 import type { MovementType } from "@/types";
 
@@ -111,7 +111,8 @@ export default function RegisterModal() {
       {tipo === "gasto" && (
         <div style={{ marginBottom: "14px" }}>
           <label style={labelStyle}>Pagado con</label>
-          <div style={{ display: "flex", gap: "6px" }}>
+          {/* 2×2: con 4 métodos en fila, "American Express" partía en dos líneas en el móvil */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px" }}>
             {PAYMENT_METHODS.map((method) => (
               <button
                 key={method}
@@ -131,7 +132,7 @@ export default function RegisterModal() {
                   transition: "all 0.15s",
                 }}
               >
-                {method === "Efectivo" ? "💵" : method === "Visa Crédito" ? "💳" : "🟣"} {method}
+                {PAYMENT_META[method].emoji} {method}
               </button>
             ))}
           </div>
