@@ -23,11 +23,12 @@
 
   --sage: #4A7C59;
 
-  /* Movimientos: tonos suaves para distinguir gasto/ingreso de un vistazo */
+  /* Movimientos: color solo en el monto, tonos apagados; filas en blanco */
   --expense: #B5473F;
-  --expense-bg: #FDF6F5;
   --income: #2F7A4B;
-  --income-bg: #F3F9F4;
+  --icon-bg: #F1F3F2;
+  --hair: #EDEFF2;
+  --seg-bg: #E9ECEF;
 
   /* shadcn compatibility */
   --background: var(--bg);
@@ -114,6 +115,86 @@ body {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.01em;
+}
+
+/* ── Movimientos (vista agrupada por día) ───────────────── */
+.mov-view    { display: flex; flex-direction: column; gap: 16px; }
+.mov-toolbar { display: flex; flex-direction: column; gap: 10px; }
+
+.mov-search {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--white); border: 1px solid var(--border); border-radius: 12px;
+  padding: 0 12px; color: var(--muted);
+}
+.mov-search input {
+  flex: 1; min-width: 0; border: none; outline: none; background: none;
+  padding: 10px 0; font-size: 14px; font-family: var(--font-sans); color: var(--text);
+}
+.mov-search:focus-within { border-color: var(--sage); }
+
+.mov-filters { display: flex; align-items: center; gap: 8px; }
+.mov-seg {
+  flex: 1; display: grid; grid-template-columns: repeat(3, 1fr);
+  background: var(--seg-bg); border-radius: 10px; padding: 3px;
+}
+.mov-seg button {
+  border: none; background: none; border-radius: 8px; padding: 6px 0;
+  font-size: 13px; font-weight: 500; font-family: var(--font-sans); color: var(--muted); cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.mov-seg button.on {
+  background: var(--white); color: var(--text); font-weight: 600;
+  box-shadow: 0 1px 2px rgba(27, 31, 46, 0.08);
+}
+.mov-csv {
+  width: 38px; height: 34px; flex-shrink: 0; display: grid; place-items: center;
+  background: var(--white); border: 1px solid var(--border); border-radius: 10px;
+  color: var(--muted); cursor: pointer;
+}
+
+.mov-day      { display: flex; flex-direction: column; gap: 6px; }
+.mov-day-head {
+  display: flex; justify-content: space-between; align-items: baseline;
+  padding-inline: 6px; font-size: 13px; font-weight: 600; color: var(--muted);
+}
+.mov-card {
+  background: var(--white); border: 1px solid var(--hair); border-radius: 16px; overflow: hidden;
+}
+.mov-empty { text-align: center; color: var(--muted); font-size: 13px; padding: 32px 0; }
+
+/* ── Fila de movimiento ──────────────────────────────────── */
+.tx-row { position: relative; overflow: hidden; }
+.tx-row + .tx-row > .tx-swipe-inner { box-shadow: inset 0 1px 0 var(--hair); }
+
+.tx-swipe-bg {
+  position: absolute; inset: 0 0 0 auto; width: 80px; z-index: 0;
+  display: grid; place-items: center; background: var(--red-bg);
+}
+.tx-swipe-bg button { background: none; border: none; color: var(--red); cursor: pointer; padding: 0 16px; }
+
+.tx-swipe-inner {
+  position: relative; z-index: 1;
+  display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; align-items: center; gap: 12px;
+  background: var(--white); cursor: pointer;
+}
+.tx-swipe-inner:focus-visible { outline: 2px solid var(--sage); outline-offset: -2px; }
+
+.tx-icon {
+  width: 40px; height: 40px; border-radius: 50%; background: var(--icon-bg);
+  display: grid; place-items: center; font-size: 19px; line-height: 1;
+}
+.tx-text  { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.tx-title, .tx-meta { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tx-title { font-size: 14.5px; font-weight: 500; color: var(--text); }
+.tx-meta  { font-size: 12.5px; color: var(--muted); }
+.tx-end   { display: flex; align-items: center; gap: 2px; }
+
+.tx-hover-delete {
+  display: none; background: none; border: none; color: var(--muted);
+  padding: 4px 6px; border-radius: 6px; cursor: pointer;
+}
+@media (hover: hover) and (pointer: fine) {
+  .tx-row:hover .tx-hover-delete { display: inline-flex; }
 }
 
 /* ── Toast ───────────────────────────────────────────────── */

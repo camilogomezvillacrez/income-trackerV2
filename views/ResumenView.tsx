@@ -121,7 +121,7 @@ export default function ResumenView() {
             <div key={i} className="sk" style={{ height: "44px", marginBottom: "8px", borderRadius: "8px" }} />
           ))
         ) : (
-          (data?.recent ?? []).map((r) => <TransactionRow key={`${r.tipo}-${r.id}`} r={r} />)
+          (data?.recent ?? []).map((r) => <TransactionRow key={`${r.tipo}-${r.id}`} r={r} flush />)
         )}
         {data?.recent.length === 0 && (
           <div style={{ textAlign: "center", color: "var(--muted)", fontSize: "12px", padding: "20px 0" }}>

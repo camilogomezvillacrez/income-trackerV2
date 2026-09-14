@@ -139,7 +139,7 @@ export default function CategoriaDetailView({ catName }: Props) {
             <p style={{ fontSize: "10px", fontWeight: 600, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.07em", margin: "14px 0 10px" }}>
               Registros {activeSubcat ? `· ${activeSubcat}` : ""}
             </p>
-            {rows.map((r) => <TransactionRow key={`${r.tipo}-${r.id}`} r={r} />)}
+            {rows.map((r) => <TransactionRow key={`${r.tipo}-${r.id}`} r={r} flush />)}
           </>
         )}
 

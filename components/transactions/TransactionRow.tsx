@@ -1,15 +1,19 @@
 "use client";
 
-import { Pencil, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import type { Movement } from "@/types";
 import { CAT_META, paymentMeta } from "@/constants/categories";
 import { useDashboardStore } from "@/store/dashboardStore";
 import Money from "@/components/common/Money";
 import { useRef } from "react";
 
-interface Props { r: Movement; }
+interface Props {
+  r: Movement;
+  /** Sin padding lateral: para listas dentro de un panel que ya tiene el suyo. */
+  flush?: boolean;
+}
 
-export default function TransactionRow({ r }: Props) {
+export default function TransactionRow({ r, flush = false }: Props) {
   const { openModal, setEditTarget, setDeleteTarget } = useDashboardStore();
   const innerRef = useRef<HTMLDivElement>(null);
   const startX   = useRef(0);
@@ -17,18 +21,13 @@ export default function TransactionRow({ r }: Props) {
   const moved    = useRef(false);
 
   const isInc = r.tipo === "ingreso";
-  // Tinte suave por tipo: se distingue gasto/ingreso sin saturar la lista
-  const color   = isInc ? "var(--income)" : "var(--expense)";
-  const rowBg   = isInc ? "var(--income-bg)" : "var(--expense-bg)";
-  const meta  = CAT_META[r.category] ?? { emoji: "💰", color: "#6B7280", bg: "#F3F4F6" };
+  const emoji = CAT_META[r.category]?.emoji ?? "💰";
 
-  const pmLabel =
-    !isInc && r.payment_method && r.payment_method !== "Efectivo"
-      ? ` · ${paymentMeta(r.payment_method).emoji} ${paymentMeta(r.payment_method).short}`
-      : "";
-  const catLabel = r.subcategory
-    ? `${meta.emoji} ${r.category} · ${r.subcategory}`
-    : `${meta.emoji} ${r.category}`;
+  // Subtítulo en texto simple, sin chips: "Suscripciones · Nu"
+  const pm = !isInc && r.payment_method && r.payment_method !== "Efectivo"
+    ? paymentMeta(r.payment_method).short
+    : null;
+  const subtitle = [r.category, pm].filter(Boolean).join(" · ");
 
   function handleEdit()   { setEditTarget({ tipo: r.tipo, id: r.id }); openModal("edit"); }
   function handleDelete() { setDeleteTarget({ tipo: r.tipo, id: r.id, desc: r.note || r.category, amount: r.amount }); openModal("del"); }
@@ -54,61 +53,62 @@ export default function TransactionRow({ r }: Props) {
     innerRef.current.style.transform = dx < -50 ? "translateX(-80px)" : "";
   }
 
+  // Tocar la fila edita; si venía de deslizar o estaba abierta, solo se cierra
+  function onRowClick() {
+    if (moved.current) return;
+    const el = innerRef.current;
+    if (el?.style.transform) { el.style.transform = ""; return; }
+    handleEdit();
+  }
+
   return (
     <div
-      style={{ position: "relative", overflow: "hidden", borderBottom: "1px solid var(--border)" }}
+      className="tx-row"
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
     >
-      {/* Swipe background */}
-      <div style={{ position: "absolute", right: 0, top: 0, bottom: 0, width: "72px", background: "var(--red-bg)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 0 }}>
-        <button onClick={handleDelete} style={{ background: "none", border: "none", color: "var(--red)", cursor: "pointer", padding: "0 16px" }}>
+      {/* Acción al deslizar */}
+      <div className="tx-swipe-bg">
+        <button onClick={handleDelete} aria-label="Eliminar movimiento">
           <Trash2 size={20} />
         </button>
       </div>
 
-      {/* Row */}
       <div
         ref={innerRef}
         className="tx-swipe-inner"
-        style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "9px 8px", background: rowBg, position: "relative", zIndex: 1 }}
+        role="button"
+        tabIndex={0}
+        aria-label={`Editar ${r.note || r.category}`}
+        onClick={onRowClick}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleEdit(); }
+        }}
+        style={{ padding: flush ? "10px 0" : "11px 14px" }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: "10px", minWidth: 0 }}>
-          {/* Category emoji icon */}
-          <div
-            style={{
-              width: "32px", height: "32px", borderRadius: "8px",
-              background: meta.bg, display: "flex", alignItems: "center",
-              justifyContent: "center", flexShrink: 0, fontSize: "17px", lineHeight: 1,
-            }}
-          >
-            {meta.emoji}
-          </div>
-          <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: "12px", color: "var(--text)", fontWeight: 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-              {r.note || r.category}
-            </div>
-            <div style={{ fontSize: "10px", color: "var(--muted)", marginTop: "2px", display: "flex", alignItems: "center", gap: "5px", flexWrap: "wrap" }}>
-              <span style={{ display: "inline-flex", alignItems: "center", gap: "3px", borderRadius: "4px", padding: "1px 6px", fontSize: "9px", fontWeight: 600, background: `${meta.color}26`, color: meta.color, border: `1px solid ${meta.color}50` }}>
-                {catLabel}{pmLabel}
-              </span>
-              <span style={{ color: "var(--muted)" }}>{r.date}</span>
-            </div>
-          </div>
+        <div className="tx-icon" aria-hidden>{emoji}</div>
+
+        <div className="tx-text">
+          <div className="tx-title">{r.note || r.category}</div>
+          <div className="tx-meta">{subtitle}</div>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center" }}>
+        <div className="tx-end">
           <Money
             value={r.amount}
             prefix={isInc ? "+" : "-"}
-            color={color}
-            style={{ fontSize: "12px", fontWeight: 600, whiteSpace: "nowrap", flexShrink: 0 }}
+            color={isInc ? "var(--income)" : "var(--expense)"}
+            style={{ fontSize: "14.5px", fontWeight: 600, whiteSpace: "nowrap" }}
           />
-          <div style={{ display: "flex", alignItems: "center", gap: "1px", marginLeft: "6px" }}>
-            <button onClick={handleEdit}   style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", padding: "4px 5px", borderRadius: "5px" }} title="Editar"><Pencil size={13} /></button>
-            <button onClick={handleDelete} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)", padding: "4px 5px", borderRadius: "5px" }} title="Eliminar"><Trash2 size={13} /></button>
-          </div>
+          {/* Con mouse no hay deslizar: la basura aparece al pasar por encima */}
+          <button
+            className="tx-hover-delete"
+            onClick={(e) => { e.stopPropagation(); handleDelete(); }}
+            aria-label="Eliminar movimiento"
+          >
+            <Trash2 size={14} />
+          </button>
         </div>
       </div>
     </div>
