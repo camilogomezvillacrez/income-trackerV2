@@ -31,9 +31,11 @@ export default function LockScreen({ mode, email, onSuccess, onUsePassword }: Pr
   const [busy, setBusy]   = useState(false);
   const [error, setError] = useState("");
 
-  async function fetchOptions(): Promise<PublicKeyCredentialRequestOptionsJSON | null> {
+  /** diag: motivo del intento fallido anterior, para verlo en los logs del servidor. */
+  async function fetchOptions(diag?: string): Promise<PublicKeyCredentialRequestOptionsJSON | null> {
     try {
-      const res = await fetch(`${base}/options`, { method: "POST" });
+      const qs = diag ? `?diag=${encodeURIComponent(diag.slice(0, 160))}` : "";
+      const res = await fetch(`${base}/options${qs}`, { method: "POST" });
       if (res.ok) return await res.json();
       // Sin sesión o la cuenta ya no tiene Face ID: solo queda la contraseña
       if (res.status === 400 || res.status === 401) onUsePassword();
@@ -47,10 +49,24 @@ export default function LockScreen({ mode, email, onSuccess, onUsePassword }: Pr
     if (!options.current) options.current = await fetchOptions();
     if (!options.current) return;
 
+    const optionsJSON = options.current;
     setBusy(true);
     setError("");
+    let diag = "";
     try {
-      const response = await startAuthentication({ optionsJSON: options.current });
+      let response;
+      const t0 = performance.now();
+      try {
+        response = await startAuthentication({ optionsJSON });
+      } catch (first) {
+        // iOS a veces rechaza al instante el primer intento tras abrir la app,
+        // sin llegar a mostrar Face ID. Un rechazo tan rápido no puede ser que
+        // el usuario canceló: se reintenta una vez dentro del mismo toque.
+        const elapsed = Math.round(performance.now() - t0);
+        if ((first as Error).name !== "NotAllowedError" || elapsed > 1000) throw first;
+        diag = `retry:${(first as Error).name}:${elapsed}ms:${(first as Error).message}`;
+        response = await startAuthentication({ optionsJSON });
+      }
       const res = await fetch(`${base}/verify`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -65,7 +81,9 @@ export default function LockScreen({ mode, email, onSuccess, onUsePassword }: Pr
     } catch (e) {
       // Cancelado por el usuario: sin mensaje; cualquier otro fallo sí se muestra
       if ((e as Error).name !== "NotAllowedError") setError((e as Error).message);
-      options.current = await fetchOptions();
+      options.current = await fetchOptions(
+        `${diag ? diag + "|" : ""}fail:${(e as Error).name}:${(e as Error).message}`
+      );
     } finally {
       setBusy(false);
     }

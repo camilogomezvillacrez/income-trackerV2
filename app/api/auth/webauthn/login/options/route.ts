@@ -9,6 +9,10 @@ import { PASSKEY_HINT_COOKIE, readPasskeyHint, relyingParty } from "@/lib/webaut
  * directo a Face ID); si no, el iPhone ofrece la passkey guardada del dominio.
  */
 export async function POST(req: NextRequest) {
+  // Motivo del intento fallido anterior (lo manda la pantalla de bloqueo)
+  const diag = req.nextUrl.searchParams.get("diag");
+  if (diag) console.log("[webauthn-diag] login", diag.slice(0, 160));
+
   const { rpID } = relyingParty(req);
   const known = readPasskeyHint(req.cookies.get(PASSKEY_HINT_COOKIE)?.value);
 

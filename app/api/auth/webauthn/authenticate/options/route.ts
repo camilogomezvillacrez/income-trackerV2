@@ -5,6 +5,10 @@ import { getCredentials, relyingParty } from "@/lib/webauthn";
 
 /** Ruta pública (la app está bloqueada): exige cookie de sesión válida, no actividad reciente. */
 export async function POST(req: NextRequest) {
+  // Motivo del intento fallido anterior (lo manda la pantalla de bloqueo)
+  const diag = req.nextUrl.searchParams.get("diag");
+  if (diag) console.log("[webauthn-diag] unlock", diag.slice(0, 160));
+
   const session = await getSession();
   if (!session.userId) return unauthorized();
 
