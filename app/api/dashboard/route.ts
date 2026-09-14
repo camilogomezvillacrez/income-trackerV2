@@ -7,7 +7,8 @@ export async function GET(req: NextRequest) {
   const user = await getAuthUser();
   if (!user) return unauthorized();
 
-  const month = req.nextUrl.searchParams.get("month") ?? currentMonth();
+  const param = req.nextUrl.searchParams.get("month");
+  const month = param && /^\d{4}-(0[1-9]|1[0-2])$/.test(param) ? param : currentMonth();
   const data = await getDashboardData(month, user.userId);
   return NextResponse.json(data);
 }

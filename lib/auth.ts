@@ -7,13 +7,21 @@ export interface SessionData {
   email: string;
   /** Momento de la última acción real del usuario (ms). */
   lastActivity?: number;
+  /** El usuario tiene Face ID (passkey) registrado. */
+  hasPasskey?: boolean;
+  /** Reto WebAuthn pendiente de verificar. */
+  challenge?: string;
 }
 
 /**
- * Inactividad máxima antes de cerrar la sesión.
+ * Inactividad máxima antes de BLOQUEAR la app. Con Face ID se desbloquea;
+ * sin Face ID toca volver a iniciar sesión.
  * El sondeo automático en segundo plano no cuenta como actividad.
  */
 export const SESSION_IDLE_MS = 5 * 60 * 1000;
+
+/** Vida de la cookie: la sesión dura 30 días (renovados con el uso). */
+export const SESSION_MAX_AGE_S = 30 * 24 * 60 * 60;
 
 export const sessionOptions = {
   password:
@@ -24,7 +32,7 @@ export const sessionOptions = {
     secure: process.env.NODE_ENV === "production",
     httpOnly: true,
     sameSite: "lax" as const,
-    maxAge: Math.floor(SESSION_IDLE_MS / 1000),
+    maxAge: SESSION_MAX_AGE_S,
   },
 };
 
@@ -33,15 +41,17 @@ export async function getSession() {
   return getIronSession<SessionData>(cookieStore, sessionOptions);
 }
 
+export function isIdle(session: SessionData) {
+  return !!session.lastActivity && Date.now() - session.lastActivity > SESSION_IDLE_MS;
+}
+
 export async function getAuthUser(): Promise<{ userId: number; email: string } | null> {
   const session = await getSession();
   if (!session.userId) return null;
 
   // Defensa en profundidad: el proxy ya filtra por inactividad, pero las
   // rutas también lo verifican por si la cookie llega por otro camino.
-  if (session.lastActivity && Date.now() - session.lastActivity > SESSION_IDLE_MS) {
-    return null;
-  }
+  if (isIdle(session)) return null;
 
   return { userId: session.userId, email: session.email };
 }

@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Fira_Code } from "next/font/google";
 import "./globals.css";
+import ServiceWorker from "@/components/common/ServiceWorker";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -19,6 +20,7 @@ const firaCode = Fira_Code({
 export const metadata: Metadata = {
   title: "Mis Finanzas",
   description: "Dashboard de finanzas personales",
+  appleWebApp: { capable: true, title: "Mis Finanzas", statusBarStyle: "default" },
 };
 
 export const viewport: Viewport = {
@@ -33,7 +35,10 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="es" className={`${inter.variable} ${firaCode.variable} h-full`}>
-      <body className="min-h-full flex flex-col antialiased">{children}</body>
+      <body className="min-h-full flex flex-col antialiased">
+        {children}
+        <ServiceWorker />
+      </body>
     </html>
   );
 }

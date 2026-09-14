@@ -2,7 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { getIronSession } from "iron-session";
 import { sessionOptions, SESSION_IDLE_MS, type SessionData } from "@/lib/auth";
 
-const PUBLIC_PATHS = ["/login", "/register", "/api/auth/login", "/api/auth/register"];
+const PUBLIC_PATHS = [
+  "/login", "/register", "/api/auth/login", "/api/auth/register",
+  // Desbloqueo con Face ID: la app está bloqueada, la ruta valida la sesión por su cuenta
+  "/api/auth/webauthn/authenticate",
+  // Atajo de Apple Wallet: se autentica con token propio, no con cookie
+  "/api/shortcut/expense",
+  "/sw.js", "/manifest.webmanifest",
+];
 
 /** Corta la sesión: borra la cookie y manda al login (o 401 si es una API). */
 function endSession(req: NextRequest, isApi: boolean) {
@@ -26,12 +33,17 @@ export async function proxy(req: NextRequest) {
 
   if (!session.userId) return endSession(req, isApi);
 
-  // ── Cierre por inactividad ──────────────────────────────────
+  // ── Bloqueo por inactividad ─────────────────────────────────
   const now = Date.now();
   const last = session.lastActivity ?? now;
 
   if (now - last > SESSION_IDLE_MS) {
-    return endSession(req, isApi);
+    // Con Face ID la sesión se conserva: la API responde "bloqueada" y la
+    // página pinta la pantalla de desbloqueo. Sin Face ID, a iniciar sesión.
+    if (!session.hasPasskey) return endSession(req, isApi);
+    return isApi
+      ? NextResponse.json({ error: "Bloqueada", locked: true }, { status: 401 })
+      : NextResponse.next();
   }
 
   // El sondeo automático cada 60s va marcado y NO renueva la sesión;

@@ -4,6 +4,9 @@ import { useState } from "react";
 import { Settings, Target, FileText, ArrowLeft, FileSpreadsheet, Download, LogOut } from "lucide-react";
 import { useDashboardStore, useToastStore } from "@/store/dashboardStore";
 import GastosFijosPanel from "@/components/settings/GastosFijosPanel";
+import FaceIdPanel from "@/components/settings/FaceIdPanel";
+import WalletShortcutPanel from "@/components/settings/WalletShortcutPanel";
+import { logout } from "@/lib/clientAuth";
 import ExcelButton from "@/components/common/ExcelButton";
 import { exportCSV } from "@/lib/exportCSV";
 
@@ -29,11 +32,6 @@ export default function ConfiguracionView() {
     setSaving(false);
   }
 
-  async function handleLogout() {
-    await fetch("/api/auth/logout", { method: "POST" });
-    window.location.href = "/login";
-  }
-
   return (
     <div style={{ maxWidth: "480px" }}>
       <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "20px" }}>
@@ -48,6 +46,9 @@ export default function ConfiguracionView() {
         <Settings size={20} color="var(--muted)" />
         <h2 style={{ fontSize: "16px", fontWeight: 600, color: "var(--text)" }}>Configuración</h2>
       </div>
+
+      <FaceIdPanel />
+      <WalletShortcutPanel />
 
       {/* Savings rate */}
       <div style={{ background: "var(--white)", border: "1px solid var(--border)", borderRadius: "10px", padding: "20px", marginBottom: "12px" }}>
@@ -173,7 +174,7 @@ export default function ConfiguracionView() {
           Has iniciado sesión como {userEmail ?? "tu cuenta"}.
         </p>
         <button
-          onClick={handleLogout}
+          onClick={logout}
           style={{
             display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
             background: "none", color: "var(--red)", border: "1px solid var(--border)",

@@ -5,21 +5,23 @@ import Logo from "./Logo";
 import { useDashboardStore } from "@/store/dashboardStore";
 
 /*
- * Pantalla de carga al entrar: logo con animación mientras
- * llegan los datos del dashboard, luego se desvanece.
+ * Pantalla de carga al entrar. Solo se ve de verdad la primera vez (sin
+ * datos guardados en el teléfono): si la caché local llega enseguida se
+ * quita sin animación para que la app abra al instante.
  */
 export default function SplashScreen() {
   const data = useDashboardStore((s) => s.data);
   const [visible, setVisible] = useState(true);
   const [fading, setFading] = useState(false);
+  const [mountedAt] = useState(() => Date.now());
 
   useEffect(() => {
-    if (data && !fading) {
-      setFading(true);
-      const t = setTimeout(() => setVisible(false), 450);
-      return () => clearTimeout(t);
-    }
-  }, [data, fading]);
+    if (!data || fading) return;
+    if (Date.now() - mountedAt < 200) { setVisible(false); return; }
+    setFading(true);
+    const t = setTimeout(() => setVisible(false), 250);
+    return () => clearTimeout(t);
+  }, [data, fading, mountedAt]);
 
   if (!visible) return null;
 
@@ -36,7 +38,7 @@ export default function SplashScreen() {
         justifyContent: "center",
         gap: "18px",
         opacity: fading ? 0 : 1,
-        transition: "opacity 0.45s ease",
+        transition: "opacity 0.25s ease",
         pointerEvents: fading ? "none" : "auto",
       }}
     >

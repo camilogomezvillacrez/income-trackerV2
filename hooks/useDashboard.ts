@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useDashboardStore } from "@/store/dashboardStore";
 import { currentMonth } from "@/lib/utils";
+import { logout } from "@/lib/clientAuth";
 
 /** Debe coincidir con SESSION_IDLE_MS en lib/auth.ts */
 const IDLE_MS = 5 * 60 * 1000;
@@ -12,17 +13,23 @@ const ACTIVITY_EVENTS = ["pointerdown", "keydown", "wheel", "touchstart", "scrol
 /** Última interacción real del usuario (no cuenta el sondeo automático). */
 let lastInteraction = Date.now();
 
-export function useDashboard() {
-  const { refresh, activeMonth } = useDashboardStore();
+/** Tras desbloquear con Face ID el contador de inactividad vuelve a cero. */
+export function markActive() {
+  lastInteraction = Date.now();
+}
 
-  // Recarga cuando cambia el mes seleccionado
+export function useDashboard() {
+  const { refresh, activeMonth, locked } = useDashboardStore();
+
+  // Recarga cuando cambia el mes seleccionado o al desbloquear
   useEffect(() => {
     refresh();
-  }, [activeMonth]);
+  }, [activeMonth, locked]);
 
-  // Auto-refresco cada 60 segundos
+  // Auto-refresco cada 60 segundos (solo con la app a la vista)
   useEffect(() => {
     const interval = setInterval(() => {
+      if (document.visibilityState !== "visible") return;
       // Si el usuario tocó algo en el último minuto, el sondeo cuenta como
       // actividad y renueva la sesión; si no, va marcado como background.
       const active = Date.now() - lastInteraction < 60_000;
@@ -31,21 +38,16 @@ export function useDashboard() {
     return () => clearInterval(interval);
   }, []);
 
-  // ── Cierre de sesión por inactividad ────────────────────────
+  // ── Bloqueo por inactividad ─────────────────────────────────
   useEffect(() => {
     const touch = () => { lastInteraction = Date.now(); };
 
-    async function logout() {
-      try {
-        await fetch("/api/auth/logout", { method: "POST" });
-      } catch {
-        // Sin red: igual sacamos al usuario de la pantalla
-      }
-      window.location.href = "/login";
-    }
-
     function check() {
-      if (Date.now() - lastInteraction >= IDLE_MS) logout();
+      const { locked, hasPasskey, setLocked } = useDashboardStore.getState();
+      if (locked || Date.now() - lastInteraction < IDLE_MS) return;
+      // Con Face ID se bloquea la pantalla; sin Face ID se cierra la sesión
+      if (hasPasskey) setLocked(true);
+      else logout();
     }
 
     // Al volver a la pestaña/app se comprueba de inmediato

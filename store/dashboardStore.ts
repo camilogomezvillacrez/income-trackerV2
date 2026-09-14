@@ -3,6 +3,7 @@
 import { create } from "zustand";
 import type { DashboardData, ViewType, ModalType, MovTab } from "@/types";
 import { currentMonth } from "@/lib/utils";
+import { readCache, writeCache } from "@/lib/dashboardCache";
 
 interface EditTarget   { tipo: "ingreso" | "gasto"; id: number; }
 interface DeleteTarget { tipo: "ingreso" | "gasto"; id: number; desc: string; amount: number; }
@@ -24,6 +25,9 @@ interface DashboardStore {
   privacyMode: boolean;
   lastKnownMonth: string;
   reportMonth: string | null;
+  /** App bloqueada por inactividad: se desbloquea con Face ID. */
+  locked: boolean;
+  hasPasskey: boolean;
 
   setUserEmail: (e: string) => void;
   setView: (v: ViewType) => void;
@@ -42,6 +46,8 @@ interface DashboardStore {
   setMonth: (m: string) => void;
   setData: (d: DashboardData) => void;
   setLoading: (l: boolean) => void;
+  setLocked: (l: boolean) => void;
+  setHasPasskey: (v: boolean) => void;
   /** background = sondeo automático; no renueva la sesión del usuario. */
   refresh: (background?: boolean) => Promise<void>;
 }
@@ -62,6 +68,8 @@ export const useDashboardStore = create<DashboardStore>((set, get) => ({
   privacyMode: false,
   lastKnownMonth: currentMonth(),
   reportMonth: null,
+  locked: false,
+  hasPasskey: false,
 
   setUserEmail: (e) => set({ userEmail: e }),
   openReport: (month) => set({ reportMonth: month }),
@@ -80,17 +88,40 @@ export const useDashboardStore = create<DashboardStore>((set, get) => ({
   setMonth: (m) => set({ activeMonth: m }),
   setData: (d) => set({ data: d, loading: false }),
   setLoading: (l) => set({ loading: l }),
+  setLocked: (l) => set({ locked: l }),
+  setHasPasskey: (v) => set({ hasPasskey: v }),
 
   refresh: async (background = false) => {
-    const month = get().activeMonth;
+    const { activeMonth: month, userEmail, data: current } = get();
+
+    // Pinta al instante lo guardado en el teléfono; la red actualiza después.
+    if (current?.current_month !== month) {
+      const cached = readCache(userEmail, month);
+      if (cached) set({ data: cached });
+    }
+
+    // Bloqueada: no se pide nada hasta desbloquear con Face ID
+    if (get().locked) return;
+
     set({ loading: true });
-    const res = await fetch(`/api/dashboard?month=${month}`, {
-      headers: background ? { "x-bg-poll": "1" } : undefined,
-    });
-    if (res.status === 401) { window.location.href = "/login"; return; }
-    const data: DashboardData = await res.json();
-    // No sobreescribir activeMonth — el usuario controla qué mes ve
-    set({ data, loading: false });
+    try {
+      const res = await fetch(`/api/dashboard?month=${month}`, {
+        headers: background ? { "x-bg-poll": "1" } : undefined,
+      });
+      if (res.status === 401) {
+        const body = await res.json().catch(() => ({}));
+        if (body.locked) { set({ locked: true, loading: false }); return; }
+        window.location.href = "/login";
+        return;
+      }
+      const data: DashboardData = await res.json();
+      writeCache(userEmail, month, data);
+      // Si mientras tanto el usuario cambió de mes, no pisar lo que está viendo
+      if (get().activeMonth === month) set({ data, loading: false });
+    } catch {
+      // Sin red: se queda con lo guardado
+      set({ loading: false });
+    }
   },
 }));
 

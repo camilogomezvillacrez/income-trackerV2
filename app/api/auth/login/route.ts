@@ -3,6 +3,7 @@ import { compareSync } from "bcryptjs";
 import { getSession } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 import { checkRateLimit, resetRateLimit } from "@/lib/rateLimit";
+import { userHasPasskey } from "@/lib/webauthn";
 
 export async function POST(req: NextRequest) {
   // ── Rate limiting por IP ────────────────────────────────────
@@ -49,6 +50,7 @@ export async function POST(req: NextRequest) {
   session.userId       = Number(user!.id);
   session.email        = email.toLowerCase().trim();
   session.lastActivity = Date.now();
+  session.hasPasskey   = await userHasPasskey(session.userId);
   await session.save();
 
   return NextResponse.json({ ok: true });

@@ -5,17 +5,132 @@ function toNum(v: unknown): number {
   return typeof v === "number" ? v : Number(v ?? 0);
 }
 
+/** "2026-09" → ["2026-09-01", "2026-10-01"]: rango [inicio, fin) que sí usa el índice (user_id, date). */
+function monthRange(month: string): [string, string] {
+  const [y, m] = month.split("-").map(Number);
+  const next = m === 12 ? `${y + 1}-01` : `${y}-${String(m + 1).padStart(2, "0")}`;
+  return [`${month}-01`, `${next}-01`];
+}
+
 export async function getDashboardData(month: string, userId: number): Promise<DashboardData> {
   const db = getDb();
+  const [from, to] = monthRange(month);
 
-  // ── All months with data for this user ──────────────────────
-  const allMonthsRes = await db.execute(`
-    SELECT DISTINCT substr(date,1,7) as m FROM (
-      SELECT date FROM incomes WHERE user_id=?
-      UNION ALL
-      SELECT date FROM expenses WHERE user_id=?
-    ) ORDER BY m DESC
-  `, [userId, userId]);
+  // Todas las consultas viajan juntas a Turso en un solo round-trip.
+  const [
+    allMonthsRes, monthlyRes, incRes, expRes, catRes, incCatRes, movsRes,
+    weeklyRes, goalsRes, avgSavingsRes, debtsRes, paymentsRes, fixedRes,
+    budgetsRes, userRes,
+  ] = await db.batch([
+    // ── All months with data for this user ──────────────────────
+    {
+      sql: `SELECT DISTINCT substr(date,1,7) as m FROM (
+              SELECT date FROM incomes WHERE user_id=?
+              UNION ALL
+              SELECT date FROM expenses WHERE user_id=?
+            ) ORDER BY m DESC`,
+      args: [userId, userId],
+    },
+    // ── Monthly totals (last 6 months) ──────────────────────────
+    {
+      sql: `SELECT m, SUM(inc) as ingresos, SUM(exp) as gastos FROM (
+              SELECT substr(date,1,7) as m, amount as inc, 0 as exp FROM incomes WHERE user_id=?
+              UNION ALL
+              SELECT substr(date,1,7) as m, 0 as inc, amount as exp FROM expenses WHERE user_id=?
+            )
+            GROUP BY m ORDER BY m DESC LIMIT 6`,
+      args: [userId, userId],
+    },
+    // ── KPIs ─────────────────────────────────────────────────────
+    {
+      sql: "SELECT COALESCE(SUM(amount),0) as t FROM incomes WHERE user_id=? AND date>=? AND date<?",
+      args: [userId, from, to],
+    },
+    {
+      sql: "SELECT COALESCE(SUM(amount),0) as t FROM expenses WHERE user_id=? AND date>=? AND date<?",
+      args: [userId, from, to],
+    },
+    // ── Expenses by category + subcategory ──────────────────────
+    {
+      sql: `SELECT category, subcategory, SUM(amount) as total
+            FROM expenses WHERE user_id=? AND date>=? AND date<?
+            GROUP BY category, subcategory ORDER BY SUM(amount) DESC`,
+      args: [userId, from, to],
+    },
+    // ── Income by category ──────────────────────────────────────
+    {
+      sql: `SELECT category, SUM(amount) as t FROM incomes
+            WHERE user_id=? AND date>=? AND date<? GROUP BY category ORDER BY t DESC`,
+      args: [userId, from, to],
+    },
+    // ── All movements this month ─────────────────────────────────
+    {
+      sql: `SELECT id, amount, category, subcategory, note, date, payment_method, 'gasto' as tipo
+            FROM expenses WHERE user_id=? AND date>=? AND date<?
+            UNION ALL
+            SELECT id, amount, category, subcategory, note, date, NULL as payment_method, 'ingreso' as tipo
+            FROM incomes WHERE user_id=? AND date>=? AND date<?
+            ORDER BY date DESC, id DESC LIMIT 200`,
+      args: [userId, from, to, userId, from, to],
+    },
+    // ── Weekly spending ──────────────────────────────────────────
+    {
+      sql: `SELECT strftime('%w', date) as dow, SUM(amount) as total
+            FROM expenses WHERE user_id=? AND date>=? AND date<? GROUP BY dow`,
+      args: [userId, from, to],
+    },
+    // ── Goals ────────────────────────────────────────────────────
+    {
+      sql: "SELECT * FROM goals WHERE user_id=? ORDER BY created_at DESC",
+      args: [userId],
+    },
+    {
+      sql: `SELECT AVG(bal) as avg FROM (
+              SELECT substr(date,1,7) as m,
+                SUM(CASE WHEN t='i' THEN amount ELSE -amount END) as bal
+              FROM (
+                SELECT date, amount, 'i' as t FROM incomes WHERE user_id=?
+                UNION ALL
+                SELECT date, amount, 'g' as t FROM expenses WHERE user_id=?
+              )
+              GROUP BY m ORDER BY m DESC LIMIT 3
+            )`,
+      args: [userId, userId],
+    },
+    // ── Deudas ───────────────────────────────────────────────────
+    {
+      sql: `SELECT * FROM debts WHERE user_id=?
+            ORDER BY completed ASC, due_date IS NULL ASC, due_date ASC, created_at DESC`,
+      args: [userId],
+    },
+    {
+      sql: "SELECT * FROM debt_payments WHERE user_id=? ORDER BY date DESC, id DESC",
+      args: [userId],
+    },
+    // ── Gastos fijos ─────────────────────────────────────────────
+    {
+      sql: `SELECT f.*,
+              (SELECT COUNT(*) FROM expenses e
+               WHERE e.fixed_expense_id = f.id
+                 AND e.user_id = f.user_id
+                 AND e.date >= ? AND e.date < ?) AS reg
+            FROM fixed_expenses f
+            WHERE f.user_id = ?
+            ORDER BY f.active DESC, f.day_of_month ASC, f.name ASC`,
+      args: [from, to, userId],
+    },
+    // ── Budgets ──────────────────────────────────────────────────
+    {
+      sql: "SELECT category, amount FROM budgets WHERE user_id=?",
+      args: [userId],
+    },
+    // ── Savings target ───────────────────────────────────────────
+    {
+      sql: "SELECT savings_target FROM users WHERE id=?",
+      args: [userId],
+    },
+  ], "read");
+
   const all_months: string[] = allMonthsRes.rows.map((r) => String(r.m));
 
   // Siempre incluir el mes calendario actual aunque no tenga transacciones
@@ -25,42 +140,18 @@ export async function getDashboardData(month: string, userId: number): Promise<D
   // Siempre usar el mes pedido — nunca hacer fallback a otro mes
   const current_month = month;
 
-  // ── Monthly totals (last 6 months) ──────────────────────────
-  const monthlyRes = await db.execute(`
-    SELECT m, SUM(inc) as ingresos, SUM(exp) as gastos FROM (
-      SELECT substr(date,1,7) as m, amount as inc, 0 as exp FROM incomes WHERE user_id=?
-      UNION ALL
-      SELECT substr(date,1,7) as m, 0 as inc, amount as exp FROM expenses WHERE user_id=?
-    )
-    GROUP BY m ORDER BY m ASC LIMIT 6
-  `, [userId, userId]);
+  // Se piden los 6 más recientes (DESC) y se devuelven en orden cronológico
   const monthly: MonthlyRow[] = monthlyRes.rows.map((r) => ({
     month: String(r.m),
     ingresos: toNum(r.ingresos),
     gastos: toNum(r.gastos),
-  }));
+  })).reverse();
 
-  // ── KPIs ─────────────────────────────────────────────────────
-  const incRes = await db.execute(
-    "SELECT COALESCE(SUM(amount),0) as t FROM incomes WHERE substr(date,1,7)=? AND user_id=?",
-    [current_month, userId]
-  );
-  const expRes = await db.execute(
-    "SELECT COALESCE(SUM(amount),0) as t FROM expenses WHERE substr(date,1,7)=? AND user_id=?",
-    [current_month, userId]
-  );
   const month_inc    = toNum(incRes.rows[0]?.t);
   const month_exp    = toNum(expRes.rows[0]?.t);
   const balance      = month_inc - month_exp;
   const tasa_ahorro  = month_inc > 0 ? (balance / month_inc) * 100 : 0;
 
-  // ── Expenses by category + subcategory ──────────────────────
-  const catRes = await db.execute(
-    `SELECT category, subcategory, SUM(amount) as total
-     FROM expenses WHERE substr(date,1,7)=? AND user_id=?
-     GROUP BY category, subcategory ORDER BY SUM(amount) DESC`,
-    [current_month, userId]
-  );
   const catMap = new Map<string, CategoryTotal>();
   for (const r of catRes.rows) {
     const cat = String(r.category);
@@ -73,24 +164,8 @@ export async function getDashboardData(month: string, userId: number): Promise<D
   }
   const by_category: CategoryTotal[] = Array.from(catMap.values()).sort((a, b) => b.total - a.total);
 
-  // ── Income by category ──────────────────────────────────────
-  const incCatRes = await db.execute(
-    `SELECT category, SUM(amount) as t FROM incomes
-     WHERE substr(date,1,7)=? AND user_id=? GROUP BY category ORDER BY t DESC`,
-    [current_month, userId]
-  );
   const by_cat_inc = incCatRes.rows.map((r) => ({ category: String(r.category), t: toNum(r.t) }));
 
-  // ── All movements this month ─────────────────────────────────
-  const movsRes = await db.execute(
-    `SELECT id, amount, category, subcategory, note, date, payment_method, 'gasto' as tipo
-     FROM expenses WHERE substr(date,1,7)=? AND user_id=?
-     UNION ALL
-     SELECT id, amount, category, subcategory, note, date, NULL as payment_method, 'ingreso' as tipo
-     FROM incomes WHERE substr(date,1,7)=? AND user_id=?
-     ORDER BY date DESC, id DESC LIMIT 200`,
-    [current_month, userId, current_month, userId]
-  );
   const all_movs: Movement[] = movsRes.rows.map((r) => ({
     id: toNum(r.id),
     tipo: String(r.tipo) as "ingreso" | "gasto",
@@ -103,33 +178,9 @@ export async function getDashboardData(month: string, userId: number): Promise<D
   }));
   const recent = all_movs.slice(0, 6);
 
-  // ── Weekly spending ──────────────────────────────────────────
-  const weeklyRes = await db.execute(
-    `SELECT strftime('%w', date) as dow, SUM(amount) as total
-     FROM expenses WHERE substr(date,1,7)=? AND user_id=? GROUP BY dow`,
-    [current_month, userId]
-  );
   const weekly: Record<string, number> = { "0":0,"1":0,"2":0,"3":0,"4":0,"5":0,"6":0 };
   for (const r of weeklyRes.rows) weekly[String(r.dow)] = toNum(r.total);
 
-  // ── Goals ────────────────────────────────────────────────────
-  const goalsRes = await db.execute(
-    "SELECT * FROM goals WHERE user_id=? ORDER BY created_at DESC",
-    [userId]
-  );
-  const avgSavingsRes = await db.execute(
-    `SELECT AVG(bal) as avg FROM (
-       SELECT substr(date,1,7) as m,
-         SUM(CASE WHEN t='i' THEN amount ELSE -amount END) as bal
-       FROM (
-         SELECT date, amount, 'i' as t FROM incomes WHERE user_id=?
-         UNION ALL
-         SELECT date, amount, 'g' as t FROM expenses WHERE user_id=?
-       )
-       GROUP BY m ORDER BY m DESC LIMIT 3
-     )`,
-    [userId, userId]
-  );
   const avgSavings = toNum(avgSavingsRes.rows[0]?.avg);
 
   const goals: Goal[] = goalsRes.rows.map((r) => {
@@ -146,17 +197,6 @@ export async function getDashboardData(month: string, userId: number): Promise<D
       meses_restantes: avgSavings > 0 && falta > 0 ? Math.ceil(falta / avgSavings) : null,
     };
   });
-
-  // ── Deudas ───────────────────────────────────────────────────
-  const debtsRes = await db.execute(
-    `SELECT * FROM debts WHERE user_id=?
-     ORDER BY completed ASC, due_date IS NULL ASC, due_date ASC, created_at DESC`,
-    [userId]
-  );
-  const paymentsRes = await db.execute(
-    "SELECT * FROM debt_payments WHERE user_id=? ORDER BY date DESC, id DESC",
-    [userId]
-  );
 
   const paymentsByDebt = new Map<number, DebtPayment[]>();
   for (const r of paymentsRes.rows) {
@@ -195,18 +235,6 @@ export async function getDashboardData(month: string, userId: number): Promise<D
     };
   });
 
-  // ── Gastos fijos ─────────────────────────────────────────────
-  const fixedRes = await db.execute(
-    `SELECT f.*,
-       (SELECT COUNT(*) FROM expenses e
-        WHERE e.fixed_expense_id = f.id
-          AND substr(e.date,1,7) = ?
-          AND e.user_id = f.user_id) AS reg
-     FROM fixed_expenses f
-     WHERE f.user_id = ?
-     ORDER BY f.active DESC, f.day_of_month ASC, f.name ASC`,
-    [current_month, userId]
-  );
   const fixed_expenses: FixedExpense[] = fixedRes.rows.map((r) => ({
     id: toNum(r.id),
     name: String(r.name),
@@ -219,19 +247,9 @@ export async function getDashboardData(month: string, userId: number): Promise<D
     registered: toNum(r.reg) > 0,
   }));
 
-  // ── Budgets ──────────────────────────────────────────────────
-  const budgetsRes = await db.execute(
-    "SELECT category, amount FROM budgets WHERE user_id=?",
-    [userId]
-  );
   const budgets: Record<string, number> = {};
   for (const r of budgetsRes.rows) budgets[String(r.category)] = toNum(r.amount);
 
-  // ── Savings target ───────────────────────────────────────────
-  const userRes = await db.execute(
-    "SELECT savings_target FROM users WHERE id=?",
-    [userId]
-  );
   const savings_target = toNum(userRes.rows[0]?.savings_target ?? 20);
 
   return {

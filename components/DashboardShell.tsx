@@ -6,45 +6,74 @@ import Sidebar from "@/components/layout/Sidebar";
 import BottomNav from "@/components/layout/BottomNav";
 import ToastContainer from "@/components/common/Toast";
 import SplashScreen from "@/components/common/SplashScreen";
+import LockScreen from "@/components/common/LockScreen";
 import { useDashboard } from "@/hooks/useDashboard";
 import { useDashboardStore } from "@/store/dashboardStore";
 
 import ResumenView from "@/views/ResumenView";
-import MovimientosView from "@/views/MovimientosView";
-import MetasView from "@/views/MetasView";
-import DeudasView from "@/views/DeudasView";
-import CategoriasView from "@/views/CategoriasView";
-import CategoriaDetailView from "@/views/CategoriaDetailView";
-import ConfiguracionView from "@/views/ConfiguracionView";
-import AsistenteView from "@/views/AsistenteView";
 
-import RegisterModal from "@/components/modals/RegisterModal";
-import EditModal from "@/components/modals/EditModal";
-import DeleteModal from "@/components/modals/DeleteModal";
-import GoalModal from "@/components/modals/GoalModal";
-import AbonoModal from "@/components/modals/AbonoModal";
-import DebtModal from "@/components/modals/DebtModal";
-import DebtAbonoModal from "@/components/modals/DebtAbonoModal";
-import FixedModal from "@/components/modals/FixedModal";
-import MonthReportModal from "@/components/modals/MonthReportModal";
+import dynamic from "next/dynamic";
+import { useEffect, useState, useSyncExternalStore } from "react";
 
-import { useEffect } from "react";
+const noopSubscribe = () => () => {};
 
-export default function DashboardShell({ userEmail }: { userEmail: string }) {
-  const setUserEmail = useDashboardStore((s) => s.setUserEmail);
+// Solo Resumen va en la carga inicial; el resto se descarga al abrirse.
+const MovimientosView     = dynamic(() => import("@/views/MovimientosView"));
+const MetasView           = dynamic(() => import("@/views/MetasView"));
+const DeudasView          = dynamic(() => import("@/views/DeudasView"));
+const CategoriasView      = dynamic(() => import("@/views/CategoriasView"));
+const CategoriaDetailView = dynamic(() => import("@/views/CategoriaDetailView"));
+const ConfiguracionView   = dynamic(() => import("@/views/ConfiguracionView"));
+const AsistenteView       = dynamic(() => import("@/views/AsistenteView"));
 
-  useEffect(() => { setUserEmail(userEmail); }, [userEmail]);
+const loadRegisterModal = () => import("@/components/modals/RegisterModal");
+const RegisterModal    = dynamic(loadRegisterModal);
+const EditModal        = dynamic(() => import("@/components/modals/EditModal"));
+const DeleteModal      = dynamic(() => import("@/components/modals/DeleteModal"));
+const GoalModal        = dynamic(() => import("@/components/modals/GoalModal"));
+const AbonoModal       = dynamic(() => import("@/components/modals/AbonoModal"));
+const DebtModal        = dynamic(() => import("@/components/modals/DebtModal"));
+const DebtAbonoModal   = dynamic(() => import("@/components/modals/DebtAbonoModal"));
+const FixedModal       = dynamic(() => import("@/components/modals/FixedModal"));
+const MonthReportModal = dynamic(() => import("@/components/modals/MonthReportModal"));
+
+interface Props {
+  userEmail: string;
+  hasPasskey: boolean;
+  initiallyLocked: boolean;
+}
+
+export default function DashboardShell({ userEmail, hasPasskey, initiallyLocked }: Props) {
+  // Estado de sesión cargado antes del primer render: la caché local se lee
+  // con el email correcto y la app bloqueada nunca llega a mostrar datos.
+  // Solo en el navegador: en el servidor el store es compartido entre usuarios.
+  useState(() => {
+    if (typeof window !== "undefined") {
+      useDashboardStore.setState({ userEmail, hasPasskey, locked: initiallyLocked });
+    }
+  });
+
+  // Hasta hidratar se usa el valor del servidor, así el HTML y la hidratación coinciden
+  const mounted = useSyncExternalStore(noopSubscribe, () => true, () => false);
 
   useDashboard();
 
+  // El modal de registro es el más usado: se precarga en cuanto la app está quieta
+  useEffect(() => {
+    const t = setTimeout(loadRegisterModal, 1500);
+    return () => clearTimeout(t);
+  }, []);
+
   const { view, modal, openModal, reportMonth } = useDashboardStore();
+  const storeLocked = useDashboardStore((s) => s.locked);
+  const locked = mounted ? storeLocked : initiallyLocked;
 
   const isCatDetail = view.startsWith("cat-");
   const showFab = view === "resumen" || view === "movimientos";
 
   return (
     <>
-      <SplashScreen />
+      {locked ? <LockScreen email={userEmail} /> : <SplashScreen />}
       <Navbar />
 
       <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>
