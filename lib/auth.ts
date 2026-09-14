@@ -18,7 +18,7 @@ export interface SessionData {
  * sin Face ID toca volver a iniciar sesión.
  * El sondeo automático en segundo plano no cuenta como actividad.
  */
-export const SESSION_IDLE_MS = 5 * 60 * 1000;
+export const SESSION_IDLE_MS = 3 * 60 * 1000;
 
 /** Vida de la cookie: la sesión dura 30 días (renovados con el uso). */
 export const SESSION_MAX_AGE_S = 30 * 24 * 60 * 60;

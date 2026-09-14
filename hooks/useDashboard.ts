@@ -6,7 +6,7 @@ import { currentMonth } from "@/lib/utils";
 import { logout } from "@/lib/clientAuth";
 
 /** Debe coincidir con SESSION_IDLE_MS en lib/auth.ts */
-const IDLE_MS = 5 * 60 * 1000;
+const IDLE_MS = 3 * 60 * 1000;
 
 const ACTIVITY_EVENTS = ["pointerdown", "keydown", "wheel", "touchstart", "scroll"];
 
