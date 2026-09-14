@@ -7,7 +7,8 @@ import BottomNav from "@/components/layout/BottomNav";
 import ToastContainer from "@/components/common/Toast";
 import SplashScreen from "@/components/common/SplashScreen";
 import LockScreen from "@/components/common/LockScreen";
-import { useDashboard } from "@/hooks/useDashboard";
+import { useDashboard, markActive } from "@/hooks/useDashboard";
+import { logout } from "@/lib/clientAuth";
 import { useDashboardStore } from "@/store/dashboardStore";
 
 import ResumenView from "@/views/ResumenView";
@@ -73,7 +74,16 @@ export default function DashboardShell({ userEmail, hasPasskey, initiallyLocked 
 
   return (
     <>
-      {locked ? <LockScreen email={userEmail} /> : <SplashScreen />}
+      {locked ? (
+        <LockScreen
+          mode="unlock"
+          email={userEmail}
+          onSuccess={() => { markActive(); useDashboardStore.getState().setLocked(false); }}
+          onUsePassword={() => logout("/login?password=1")}
+        />
+      ) : (
+        <SplashScreen />
+      )}
       <Navbar />
 
       <div style={{ display: "flex", flex: 1, overflow: "hidden" }}>

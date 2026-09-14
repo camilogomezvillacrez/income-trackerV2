@@ -3,7 +3,7 @@ import { verifyRegistrationResponse } from "@simplewebauthn/server";
 import { isoBase64URL } from "@simplewebauthn/server/helpers";
 import { getAuthUser, getSession, unauthorized } from "@/lib/auth";
 import { getDb } from "@/lib/db";
-import { relyingParty } from "@/lib/webauthn";
+import { relyingParty, setPasskeyHint } from "@/lib/webauthn";
 
 export async function POST(req: NextRequest) {
   const user = await getAuthUser();
@@ -53,5 +53,5 @@ export async function POST(req: NextRequest) {
   session.hasPasskey = true;
   await session.save();
 
-  return NextResponse.json({ ok: true });
+  return setPasskeyHint(NextResponse.json({ ok: true }));
 }

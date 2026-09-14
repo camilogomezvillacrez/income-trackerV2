@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuthUser, getSession, unauthorized } from "@/lib/auth";
 import { getDb } from "@/lib/db";
+import { clearPasskeyHint } from "@/lib/webauthn";
 
 /** Desactiva Face ID: borra todas las passkeys del usuario. */
 export async function DELETE() {
@@ -13,5 +14,5 @@ export async function DELETE() {
   session.hasPasskey = false;
   await session.save();
 
-  return NextResponse.json({ ok: true });
+  return clearPasskeyHint(NextResponse.json({ ok: true }));
 }

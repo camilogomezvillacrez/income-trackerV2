@@ -1,24 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyAuthenticationResponse } from "@simplewebauthn/server";
 import { isoBase64URL } from "@simplewebauthn/server/helpers";
-import { getSession, unauthorized } from "@/lib/auth";
+import { getSession } from "@/lib/auth";
 import { getDb } from "@/lib/db";
-import { getCredentials, relyingParty, setPasskeyHint } from "@/lib/webauthn";
+import { clearPasskeyHint, getCredentialById, relyingParty, setPasskeyHint } from "@/lib/webauthn";
 
-/** Ruta pública (la app está bloqueada): Face ID correcto → renueva la actividad. */
+/** Ruta pública: Face ID correcto → crea la sesión del dueño de la passkey. */
 export async function POST(req: NextRequest) {
   const session = await getSession();
-  if (!session.userId) return unauthorized();
-
   const expectedChallenge = session.challenge;
   if (!expectedChallenge) {
     return NextResponse.json({ error: "Reto vencido, intenta de nuevo" }, { status: 400 });
   }
 
-  const body = await req.json();
-  const stored = (await getCredentials(session.userId)).find((c) => c.id === body?.id);
+  const body = await req.json().catch(() => null);
+  const stored = body?.id ? await getCredentialById(String(body.id)) : null;
   if (!stored) {
-    return NextResponse.json({ error: "Credencial desconocida" }, { status: 400 });
+    // La passkey se desactivó: el aviso ya no aplica, toca la contraseña
+    return clearPasskeyHint(NextResponse.json(
+      { error: "Este Face ID ya no está registrado", unknownCredential: true },
+      { status: 400 }
+    ));
   }
 
   const { rpID, origin } = relyingParty(req);
@@ -51,9 +53,11 @@ export async function POST(req: NextRequest) {
     [verification.authenticationInfo.newCounter, stored.id]
   );
 
-  session.challenge    = undefined;
+  session.userId       = stored.userId;
+  session.email        = stored.email;
   session.lastActivity = Date.now();
   session.hasPasskey   = true;
+  session.challenge    = undefined;
   await session.save();
 
   return setPasskeyHint(NextResponse.json({ ok: true }));

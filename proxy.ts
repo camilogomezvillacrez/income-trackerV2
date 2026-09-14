@@ -6,6 +6,8 @@ const PUBLIC_PATHS = [
   "/login", "/register", "/api/auth/login", "/api/auth/register",
   // Desbloqueo con Face ID: la app está bloqueada, la ruta valida la sesión por su cuenta
   "/api/auth/webauthn/authenticate",
+  // Entrar con Face ID sin sesión (la pantalla de bloqueo del login)
+  "/api/auth/webauthn/login",
   // Atajo de Apple Wallet: se autentica con token propio, no con cookie
   "/api/shortcut/expense",
   "/sw.js", "/manifest.webmanifest",

@@ -4,55 +4,74 @@ import { useEffect, useRef, useState } from "react";
 import { ScanFace } from "lucide-react";
 import { startAuthentication } from "@simplewebauthn/browser";
 import type { PublicKeyCredentialRequestOptionsJSON } from "@simplewebauthn/browser";
-import Logo from "./Logo";
-import { useDashboardStore } from "@/store/dashboardStore";
-import { markActive } from "@/hooks/useDashboard";
-import { logout } from "@/lib/clientAuth";
-
-async function fetchOptions(): Promise<PublicKeyCredentialRequestOptionsJSON | null> {
-  const res = await fetch("/api/auth/webauthn/authenticate/options", { method: "POST" });
-  // 401: sin sesión · 400: la cuenta no tiene Face ID → toca la contraseña
-  if (res.status === 401 || res.status === 400) { await logout(); return null; }
-  return res.ok ? res.json() : null;
-}
 
 /*
- * Pantalla opaca que tapa la app bloqueada. Las opciones de WebAuthn se
- * piden por adelantado: Safari exige que Face ID se lance directo desde el
- * toque, sin esperar a la red entre medio.
+ * Pantalla de bloqueo con Face ID. Dos usos:
+ * - "unlock": la app quedó inactiva; la sesión existe y solo se renueva.
+ * - "login":  no hay sesión (p. ej. se perdió la cookie); Face ID la crea.
+ * Las opciones de WebAuthn se piden por adelantado: Safari exige que Face ID
+ * se lance directo desde el toque, sin esperar a la red entre medio.
  */
-export default function LockScreen({ email }: { email: string }) {
-  const setLocked = useDashboardStore((s) => s.setLocked);
+const ENDPOINTS = {
+  unlock: "/api/auth/webauthn/authenticate",
+  login:  "/api/auth/webauthn/login",
+};
+
+interface Props {
+  mode: "unlock" | "login";
+  email?: string;
+  onSuccess: () => void;
+  onUsePassword: () => void;
+}
+
+export default function LockScreen({ mode, email, onSuccess, onUsePassword }: Props) {
+  const base = ENDPOINTS[mode];
   const options = useRef<PublicKeyCredentialRequestOptionsJSON | null>(null);
   const [busy, setBusy]   = useState(false);
   const [error, setError] = useState("");
 
+  async function fetchOptions(): Promise<PublicKeyCredentialRequestOptionsJSON | null> {
+    try {
+      const res = await fetch(`${base}/options`, { method: "POST" });
+      if (res.ok) return await res.json();
+      // Sin sesión o la cuenta ya no tiene Face ID: solo queda la contraseña
+      if (res.status === 400 || res.status === 401) onUsePassword();
+    } catch {
+      setError("Sin conexión. Revisa tu red e intenta de nuevo.");
+    }
+    return null;
+  }
+
   async function unlock() {
     if (!options.current) options.current = await fetchOptions();
-    if (!options.current) { setError("No se pudo preparar Face ID"); return; }
+    if (!options.current) return;
 
     setBusy(true);
     setError("");
     try {
       const response = await startAuthentication({ optionsJSON: options.current });
-      const res = await fetch("/api/auth/webauthn/authenticate/verify", {
+      const res = await fetch(`${base}/verify`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(response),
       });
-      if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error ?? "No se pudo verificar");
-      markActive();
-      setLocked(false);
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        if (body.unknownCredential) { onUsePassword(); return; }
+        throw new Error(body.error ?? "No se pudo verificar");
+      }
+      onSuccess();
     } catch (e) {
       // Cancelado por el usuario: sin mensaje; cualquier otro fallo sí se muestra
       if ((e as Error).name !== "NotAllowedError") setError((e as Error).message);
       options.current = await fetchOptions();
+    } finally {
+      setBusy(false);
     }
-    setBusy(false);
   }
 
-  // Prepara el reto y prueba a lanzar Face ID sin toque (iOS lo permite en
-  // la carga; si no, queda el botón).
+  // Prepara el reto y lanza Face ID al abrir (iOS lo permite en la carga;
+  // si no, queda el botón).
   const tried = useRef(false);
   useEffect(() => {
     if (tried.current) return;
@@ -64,40 +83,87 @@ export default function LockScreen({ email }: { email: string }) {
   }, []);
 
   return (
-    <div className="lock-screen">
-      <Logo size={72} />
-      <div style={{ textAlign: "center" }}>
-        <div style={{ fontSize: "18px", fontWeight: 700, color: "var(--text)" }}>Mis Finanzas</div>
-        <div style={{ fontSize: "12px", color: "var(--muted)", marginTop: "2px" }}>{email}</div>
+    <div className="lock-screen" role="dialog" aria-modal="true" aria-labelledby="lock-title">
+      <div aria-hidden className="lock-deco">
+        <span style={{ width: "320px", height: "320px", background: "radial-gradient(circle, rgba(74,124,89,0.20), transparent 70%)", top: "-80px", right: "-60px" }} />
+        <span style={{ width: "380px", height: "380px", background: "radial-gradient(circle, rgba(74,124,89,0.16), transparent 70%)", bottom: "-120px", left: "-100px" }} />
       </div>
 
-      <button onClick={unlock} disabled={busy} className="lock-btn">
-        <ScanFace size={20} />
-        {busy ? "Verificando…" : "Desbloquear con Face ID"}
-      </button>
+      <div className="lock-body">
+        <div className="lock-icon">
+          <ScanFace size={44} strokeWidth={1.6} />
+        </div>
 
-      {error && <p style={{ fontSize: "12px", color: "var(--red)", textAlign: "center", maxWidth: "280px" }}>{error}</p>}
+        <h1 id="lock-title" className="lock-title">Mis Finanzas está bloqueada</h1>
+        <p className="lock-sub">Usa Face ID para desbloquear</p>
+        {email && <p className="lock-email">{email}</p>}
 
-      <button onClick={logout} className="lock-link">Usar contraseña</button>
+        <button onClick={unlock} disabled={busy} className="lock-btn">
+          {busy ? "Verificando…" : "Desbloquear"}
+        </button>
+
+        <p className="lock-error" aria-live="polite">{error}</p>
+      </div>
+
+      <button onClick={onUsePassword} className="lock-link">Usar contraseña</button>
 
       <style>{`
         .lock-screen {
           position: fixed; inset: 0; z-index: 600;
-          background: var(--bg, #F7F6F2);
-          display: flex; flex-direction: column; align-items: center; justify-content: center;
-          gap: 18px; padding: 16px; font-family: var(--font-sans);
+          background: linear-gradient(165deg, #DCEBDA 0%, #F4F6F1 45%, #C9DECB 100%);
+          display: flex; flex-direction: column; align-items: center;
+          padding: max(24px, env(safe-area-inset-top)) 16px max(20px, env(safe-area-inset-bottom));
+          font-family: var(--font-sans);
         }
+        .lock-deco { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+        .lock-deco span { position: absolute; border-radius: 50%; display: block; }
+
+        .lock-body {
+          margin: auto; width: 100%; max-width: 340px;
+          display: flex; flex-direction: column; align-items: center; text-align: center;
+          position: relative; z-index: 1;
+          animation: lock-rise 0.45s ease-out both;
+        }
+        .lock-icon {
+          width: 104px; height: 104px; border-radius: 50%;
+          display: flex; align-items: center; justify-content: center;
+          color: #4A7C59;
+          background: rgba(255, 255, 255, 0.7);
+          box-shadow: 0 10px 30px rgba(58, 94, 68, 0.18), inset 0 0 0 1px rgba(74, 124, 89, 0.18);
+          margin-bottom: 28px;
+        }
+        .lock-title {
+          font-size: 23px; font-weight: 700; letter-spacing: -0.02em;
+          color: var(--text); line-height: 1.25;
+        }
+        .lock-sub { font-size: 14px; color: #4A7C59; font-weight: 500; margin-top: 8px; }
+        .lock-email { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
         .lock-btn {
-          display: flex; align-items: center; gap: 10px; margin-top: 12px;
-          background: #4A7C59; color: #fff; border: none; border-radius: 12px;
-          padding: 14px 22px; font-size: 14px; font-weight: 600; cursor: pointer;
-          font-family: var(--font-sans); box-shadow: 0 5px 16px rgba(74,124,89,.35);
+          margin-top: 32px; min-width: 220px;
+          background: #4A7C59; color: #fff; border: none; border-radius: 14px;
+          padding: 15px 28px; font-size: 15px; font-weight: 600; cursor: pointer;
+          font-family: var(--font-sans);
+          box-shadow: 0 6px 18px rgba(74, 124, 89, 0.35);
+          transition: transform 0.12s ease, opacity 0.15s ease;
         }
+        .lock-btn:active { transform: scale(0.97); }
         .lock-btn:disabled { opacity: 0.7; cursor: not-allowed; }
+
+        .lock-error { min-height: 18px; margin-top: 14px; font-size: 12.5px; color: var(--red); }
+
         .lock-link {
-          background: none; border: none; color: var(--muted); font-size: 12.5px;
-          cursor: pointer; font-family: var(--font-sans); padding: 8px;
+          position: relative; z-index: 1;
+          background: none; border: none; color: var(--muted);
+          font-size: 13px; font-weight: 500; cursor: pointer;
+          font-family: var(--font-sans); padding: 10px;
         }
+
+        @keyframes lock-rise {
+          0%   { opacity: 0; transform: translateY(12px); }
+          100% { opacity: 1; transform: none; }
+        }
+        @media (prefers-reduced-motion: reduce) { .lock-body { animation: none; } }
       `}</style>
     </div>
   );

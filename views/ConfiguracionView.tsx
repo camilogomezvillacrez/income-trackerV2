@@ -176,7 +176,7 @@ export default function ConfiguracionView() {
           Has iniciado sesión como {userEmail ?? "tu cuenta"}.
         </p>
         <button
-          onClick={logout}
+          onClick={() => logout()}
           style={{
             display: "flex", alignItems: "center", justifyContent: "center", gap: "8px",
             background: "none", color: "var(--red)", border: "1px solid var(--border)",
