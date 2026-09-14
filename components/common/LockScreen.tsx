@@ -89,14 +89,17 @@ export default function LockScreen({ mode, email, onSuccess, onUsePassword }: Pr
     }
   }
 
-  // Solo se prepara el reto al abrir; Face ID se lanza con el toque en
-  // "Desbloquear". Sin toque, Safari antepone la hoja "¿Usar llave de acceso?"
-  // y obliga a un paso extra.
+  // Face ID se lanza solo al abrir. iOS siempre antepone su hoja "Usar llave
+  // de acceso" en apps web (haya toque o no), así que esperar al botón solo
+  // añadía un toque. "Desbloquear" queda de respaldo si se cierra la hoja.
   const prepared = useRef(false);
   useEffect(() => {
     if (prepared.current) return;
     prepared.current = true;
-    fetchOptions().then((o) => { options.current = o; });
+    fetchOptions().then((o) => {
+      options.current = o;
+      if (o) unlock();
+    });
   }, []);
 
   return (
