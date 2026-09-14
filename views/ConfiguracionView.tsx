@@ -6,6 +6,7 @@ import { useDashboardStore, useToastStore } from "@/store/dashboardStore";
 import GastosFijosPanel from "@/components/settings/GastosFijosPanel";
 import FaceIdPanel from "@/components/settings/FaceIdPanel";
 import WalletShortcutPanel from "@/components/settings/WalletShortcutPanel";
+import NotificationsPanel from "@/components/settings/NotificationsPanel";
 import { logout } from "@/lib/clientAuth";
 import ExcelButton from "@/components/common/ExcelButton";
 import { exportCSV } from "@/lib/exportCSV";
@@ -49,6 +50,7 @@ export default function ConfiguracionView() {
 
       <FaceIdPanel />
       <WalletShortcutPanel />
+      <NotificationsPanel />
 
       {/* Savings rate */}
       <div style={{ background: "var(--white)", border: "1px solid var(--border)", borderRadius: "10px", padding: "20px", marginBottom: "12px" }}>

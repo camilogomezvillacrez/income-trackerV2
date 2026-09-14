@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { getDb } from "@/lib/db";
 import { hashShortcutToken } from "@/lib/shortcutToken";
+import { sendPushToUser } from "@/lib/push";
 import { categorizeByRules, parseAmount, todayBogota } from "@/lib/shortcutParse";
 import { EXP_CATS, SUBCATS } from "@/constants/categories";
 
@@ -81,6 +82,15 @@ export async function POST(req: NextRequest) {
   );
 
   const where = cat.subcategory ? `${cat.category} › ${cat.subcategory}` : cat.category;
+
+  // Push con el ícono de la app. Se espera antes de responder: en Vercel la
+  // función se congela al devolver la respuesta y el envío quedaría a medias.
+  await sendPushToUser(Number(userId), {
+    title: `Gasto registrado · ${fmt(amount)}`,
+    body: `${merchant || "Apple Pay"} → ${where}`,
+    url: "/",
+  });
+
   return NextResponse.json({
     ok: true,
     message: `✓ ${fmt(amount)} en ${merchant || "Apple Pay"} · ${where}`,
