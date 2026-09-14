@@ -3,7 +3,8 @@
 import { Repeat, Plus, Pencil, Trash2, Pause, Play } from "lucide-react";
 import { useDashboardStore, useToastStore } from "@/store/dashboardStore";
 import { fmt } from "@/lib/utils";
-import { CAT_META } from "@/constants/categories";
+import CategoryIcon from "@/components/common/CategoryIcon";
+import { findCategory } from "@/lib/categoryMeta";
 
 export default function GastosFijosPanel() {
   const { data, openModal, setEditDebtId, refresh } = useDashboardStore();
@@ -87,7 +88,7 @@ export default function GastosFijosPanel() {
         </div>
       ) : (
         fijos.map((f) => {
-          const meta = CAT_META[f.category] ?? CAT_META.General;
+          const meta = findCategory(data, f.category, "gasto");
           return (
             <div
               key={f.id}
@@ -100,21 +101,7 @@ export default function GastosFijosPanel() {
                 opacity: f.active ? 1 : 0.55,
               }}
             >
-              <div
-                style={{
-                  width: "30px",
-                  height: "30px",
-                  borderRadius: "8px",
-                  background: meta.bg,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontSize: "14px",
-                  flexShrink: 0,
-                }}
-              >
-                {meta.emoji}
-              </div>
+              <CategoryIcon icon={meta.icon} color={meta.color} size={30} shape="rounded" />
 
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: "12.5px", fontWeight: 500, color: "var(--text)" }}>

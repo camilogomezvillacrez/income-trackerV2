@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Settings, Target, FileText, ArrowLeft, FileSpreadsheet, Download, LogOut } from "lucide-react";
+import { Settings, Target, FileText, ArrowLeft, FileSpreadsheet, Download, LogOut, Tags, ChevronRight } from "lucide-react";
 import { useDashboardStore, useToastStore } from "@/store/dashboardStore";
 import GastosFijosPanel from "@/components/settings/GastosFijosPanel";
 import FaceIdPanel from "@/components/settings/FaceIdPanel";
@@ -47,6 +47,19 @@ export default function ConfiguracionView() {
         <Settings size={20} color="var(--muted)" />
         <h2 style={{ fontSize: "16px", fontWeight: 600, color: "var(--text)" }}>Configuración</h2>
       </div>
+
+      {/* Categorías */}
+      <button
+        onClick={() => setView("categorias-admin")}
+        style={{ width: "100%", display: "flex", alignItems: "center", gap: "12px", background: "var(--white)", border: "1px solid var(--border)", borderRadius: "10px", padding: "16px 20px", marginBottom: "12px", cursor: "pointer", fontFamily: "var(--font-sans)", textAlign: "left" }}
+      >
+        <Tags size={16} color="var(--sage)" />
+        <span style={{ flex: 1, display: "flex", flexDirection: "column", gap: "2px" }}>
+          <span style={{ fontSize: "14px", fontWeight: 600, color: "var(--text)" }}>Categorías</span>
+          <span style={{ fontSize: "12px", color: "var(--muted)" }}>Crea, edita o borra categorías y cambia su ícono y color</span>
+        </span>
+        <ChevronRight size={16} color="var(--muted)" />
+      </button>
 
       <FaceIdPanel />
       <WalletShortcutPanel />

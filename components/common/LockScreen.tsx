@@ -25,9 +25,30 @@ interface Props {
   onUsePassword: () => void;
 }
 
+/** Error que ya viene con un mensaje pensado para el usuario (del servidor). */
+class VerifyError extends Error {}
+
+/** Nunca se muestra el texto técnico del navegador ni de la librería. */
+function friendlyError(e: unknown): string {
+  if (e instanceof VerifyError) return e.message;
+  const err = e as { name?: string; code?: string; message?: string };
+  // Cancelado por el usuario, o reemplazado por un intento más nuevo: sin mensaje
+  if (
+    err?.name === "NotAllowedError" ||
+    err?.name === "AbortError" ||
+    err?.code === "ERROR_CEREMONY_ABORTED" ||
+    /abort/i.test(err?.message ?? "")
+  ) {
+    return "";
+  }
+  return "No se pudo usar Face ID. Toca Desbloquear para intentarlo de nuevo.";
+}
+
 export default function LockScreen({ mode, email, onSuccess, onUsePassword }: Props) {
   const base = ENDPOINTS[mode];
   const options = useRef<PublicKeyCredentialRequestOptionsJSON | null>(null);
+  // Cada intento tiene su número: solo el más reciente puede cambiar la pantalla
+  const attemptRef = useRef(0);
   const [busy, setBusy]   = useState(false);
   const [error, setError] = useState("");
 
@@ -46,8 +67,11 @@ export default function LockScreen({ mode, email, onSuccess, onUsePassword }: Pr
   }
 
   async function unlock() {
+    const attempt = ++attemptRef.current;
+    const isCurrent = () => attempt === attemptRef.current;
+
     if (!options.current) options.current = await fetchOptions();
-    if (!options.current) return;
+    if (!options.current || !isCurrent()) return;
 
     const optionsJSON = options.current;
     setBusy(true);
@@ -57,16 +81,19 @@ export default function LockScreen({ mode, email, onSuccess, onUsePassword }: Pr
       let response;
       const t0 = performance.now();
       try {
+        // Si había otro intento en curso, la librería lo cancela (y ese falla en silencio)
         response = await startAuthentication({ optionsJSON });
       } catch (first) {
         // iOS a veces rechaza al instante el primer intento tras abrir la app,
         // sin llegar a mostrar Face ID. Un rechazo tan rápido no puede ser que
         // el usuario canceló: se reintenta una vez dentro del mismo toque.
         const elapsed = Math.round(performance.now() - t0);
-        if ((first as Error).name !== "NotAllowedError" || elapsed > 1000) throw first;
+        if ((first as Error).name !== "NotAllowedError" || elapsed > 1000 || !isCurrent()) throw first;
         diag = `retry:${(first as Error).name}:${elapsed}ms:${(first as Error).message}`;
         response = await startAuthentication({ optionsJSON });
       }
+      if (!isCurrent()) return;
+
       const res = await fetch(`${base}/verify`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -75,17 +102,17 @@ export default function LockScreen({ mode, email, onSuccess, onUsePassword }: Pr
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         if (body.unknownCredential) { onUsePassword(); return; }
-        throw new Error(body.error ?? "No se pudo verificar");
+        throw new VerifyError(body.error ?? "No se pudo verificar tu Face ID");
       }
       onSuccess();
     } catch (e) {
-      // Cancelado por el usuario: sin mensaje; cualquier otro fallo sí se muestra
-      if ((e as Error).name !== "NotAllowedError") setError((e as Error).message);
-      options.current = await fetchOptions(
-        `${diag ? diag + "|" : ""}fail:${(e as Error).name}:${(e as Error).message}`
-      );
+      // Un intento más nuevo ya tomó el control: este no toca la pantalla
+      if (!isCurrent()) return;
+      setError(friendlyError(e));
+      const err = e as { name?: string; message?: string };
+      options.current = await fetchOptions(`${diag ? diag + "|" : ""}fail:${err?.name}:${err?.message}`);
     } finally {
-      setBusy(false);
+      if (isCurrent()) setBusy(false);
     }
   }
 
@@ -100,6 +127,15 @@ export default function LockScreen({ mode, email, onSuccess, onUsePassword }: Pr
       options.current = o;
       if (o) unlock();
     });
+  }, []);
+
+  // Al volver de otra app iOS corta el intento pendiente: se lanza de nuevo
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState === "visible" && prepared.current) unlock();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
   }, []);
 
   return (
@@ -118,7 +154,8 @@ export default function LockScreen({ mode, email, onSuccess, onUsePassword }: Pr
         <p className="lock-sub">Usa Face ID para desbloquear</p>
         {email && <p className="lock-email">{email}</p>}
 
-        <button onClick={unlock} disabled={busy} className="lock-btn">
+        {/* Nunca se deshabilita: si un intento se queda colgado, otro toque lo reemplaza */}
+        <button onClick={unlock} className="lock-btn">
           {busy ? "Verificando…" : "Desbloquear"}
         </button>
 
@@ -168,9 +205,8 @@ export default function LockScreen({ mode, email, onSuccess, onUsePassword }: Pr
           transition: transform 0.12s ease, opacity 0.15s ease;
         }
         .lock-btn:active { transform: scale(0.97); }
-        .lock-btn:disabled { opacity: 0.7; cursor: not-allowed; }
 
-        .lock-error { min-height: 18px; margin-top: 14px; font-size: 12.5px; color: var(--red); }
+        .lock-error { min-height: 18px; margin-top: 14px; font-size: 12.5px; color: var(--red); max-width: 300px; }
 
         .lock-link {
           position: relative; z-index: 1;

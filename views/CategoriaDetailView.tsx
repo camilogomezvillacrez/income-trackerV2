@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { ArrowLeft, X } from "lucide-react";
 import { useDashboardStore, useToastStore } from "@/store/dashboardStore";
-import { CAT_META } from "@/constants/categories";
+import CategoryIcon from "@/components/common/CategoryIcon";
+import { findCategory } from "@/lib/categoryMeta";
 import { fmt } from "@/lib/utils";
 import TransactionRow from "@/components/transactions/TransactionRow";
 
@@ -18,7 +19,7 @@ export default function CategoriaDetailView({ catName }: Props) {
 
   if (!data) return null;
 
-  const meta   = CAT_META[catName] ?? { emoji: "", color: "#6B7280", bg: "#F3F4F6" };
+  const meta   = findCategory(data, catName, "gasto");
   const cat    = data.by_category.find((c) => c.category === catName);
   const budget = data.budgets[catName];
   const over   = budget && cat && cat.total > budget;
@@ -56,8 +57,9 @@ export default function CategoriaDetailView({ catName }: Props) {
       </button>
 
       <div style={{ background: "var(--white)", border: "1px solid var(--border)", borderRadius: "10px", padding: "16px" }}>
-        <p style={{ fontSize: "13px", fontWeight: 700, color: "var(--text)", marginBottom: "14px" }}>
-          {meta.emoji} {catName}
+        <p style={{ fontSize: "14px", fontWeight: 700, color: "var(--text)", marginBottom: "14px", display: "flex", alignItems: "center", gap: "10px" }}>
+          <CategoryIcon icon={meta.icon} color={meta.color} size={32} shape="rounded" />
+          {catName}
         </p>
 
         {/* Total + budget */}

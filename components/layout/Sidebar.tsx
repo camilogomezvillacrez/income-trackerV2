@@ -3,11 +3,11 @@
 import { LayoutDashboard, ArrowLeftRight, Target, Settings, Bot, HandCoins } from "lucide-react";
 import { useDashboardStore } from "@/store/dashboardStore";
 import type { ViewType } from "@/types";
-import { CAT_META, EXP_CATS } from "@/constants/categories";
+import CategoryIcon from "@/components/common/CategoryIcon";
+import { categoriesOf } from "@/lib/categoryMeta";
 
-function SidebarItem({ icon, emoji, emojiColor, label, active, onClick }: {
-  icon?: React.ReactNode; emoji?: string; emojiColor?: string;
-  label: string; view?: ViewType; active: boolean; onClick: () => void;
+function SidebarItem({ icon, label, active, onClick }: {
+  icon: React.ReactNode; label: string; active: boolean; onClick: () => void;
 }) {
   return (
     <button
@@ -16,11 +16,6 @@ function SidebarItem({ icon, emoji, emojiColor, label, active, onClick }: {
     >
       <span style={{ color: active ? "#1D4ED8" : "var(--sub)", display: "flex", alignItems: "center" }}>
         {icon}
-        {emoji && (
-          <span style={{ width: "28px", height: "28px", borderRadius: "7px", background: emojiColor, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "15px" }}>
-            {emoji}
-          </span>
-        )}
       </span>
       <span style={{ fontSize: "12px", color: active ? "#1D4ED8" : "var(--sub)", fontWeight: active ? 600 : 500 }}>
         {label}
@@ -36,7 +31,7 @@ const sectionLabel = (text: string, mt = 0) => (
 );
 
 export default function Sidebar() {
-  const { view, setView } = useDashboardStore();
+  const { view, setView, data } = useDashboardStore();
 
   return (
     <aside style={{ width: "212px", flexShrink: 0, background: "var(--white)", borderRight: "1px solid var(--border)", padding: "16px 0", overflowY: "auto" }}>
@@ -46,14 +41,19 @@ export default function Sidebar() {
       <SidebarItem icon={<Target size={16} />} label="Metas" active={view === "metas"} onClick={() => setView("metas")} />
       <SidebarItem icon={<HandCoins size={16} />} label="Deudas" active={view === "deudas"} onClick={() => setView("deudas")} />
       <SidebarItem icon={<Bot size={16} />} label="Asistente IA" active={view === "asistente"} onClick={() => setView("asistente")} />
-      <SidebarItem icon={<Settings size={16} />} label="Configuración" active={view === "configuracion"} onClick={() => setView("configuracion")} />
+      <SidebarItem icon={<Settings size={16} />} label="Configuración" active={view === "configuracion" || view === "categorias-admin"} onClick={() => setView("configuracion")} />
 
       {sectionLabel("Categorías", 14)}
-      {EXP_CATS.map((cat) => {
-        const m = CAT_META[cat];
-        const v: ViewType = `cat-${cat}`;
+      {categoriesOf(data, "gasto").map((c) => {
+        const v: ViewType = `cat-${c.name}`;
         return (
-          <SidebarItem key={cat} emoji={m.emoji} emojiColor={m.bg} label={cat} active={view === v} onClick={() => setView(v)} />
+          <SidebarItem
+            key={c.name}
+            icon={<CategoryIcon icon={c.icon} color={c.color} size={28} shape="rounded" />}
+            label={c.name}
+            active={view === v}
+            onClick={() => setView(v)}
+          />
         );
       })}
     </aside>

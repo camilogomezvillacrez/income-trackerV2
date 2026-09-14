@@ -11,6 +11,22 @@ export interface Movement {
   payment_method: string | null;
 }
 
+export interface Subcategory {
+  name: string;
+  emoji: string;
+}
+
+/** Categoría editable del usuario. icon = "emoji:🍔" o "icon:ShoppingCart" (lucide). */
+export interface Category {
+  id: number;
+  tipo: MovementType;
+  name: string;
+  icon: string;
+  color: string;
+  subs: Subcategory[];
+  position: number;
+}
+
 export interface CategoryTotal {
   category: string;
   total: number;
@@ -101,6 +117,7 @@ export interface DashboardData {
   all_months: string[];
   budgets: Record<string, number>;
   weekly: Record<string, number>;
+  categories: Category[];
 }
 
 export type ViewType =
@@ -111,6 +128,7 @@ export type ViewType =
   | "cats"
   | "asistente"
   | "configuracion"
+  | "categorias-admin"
   | `cat-${string}`;
 
 export type ModalType =

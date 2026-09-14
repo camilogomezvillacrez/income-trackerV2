@@ -1,33 +1,39 @@
 "use client";
 
+import { Pencil } from "lucide-react";
 import { useDashboardStore } from "@/store/dashboardStore";
-import { CAT_META, EXP_CATS } from "@/constants/categories";
 import { fmt } from "@/lib/utils";
+import CategoryIcon from "@/components/common/CategoryIcon";
+import { categoriesOf } from "@/lib/categoryMeta";
 import type { ViewType } from "@/types";
 
 export default function CategoriasView() {
   const { data, setView } = useDashboardStore();
+  const categories = categoriesOf(data, "gasto");
 
   return (
     <>
+      <div className="cats-head">
+        <button onClick={() => setView("categorias-admin")} className="cats-edit">
+          <Pencil size={14} /> Editar categorías
+        </button>
+      </div>
+
       <div className="cats-grid">
-        {EXP_CATS.map((name) => {
-          const m = CAT_META[name];
-          const cat = data?.by_category.find((c) => c.category === name);
+        {categories.map((c) => {
+          const cat = data?.by_category.find((x) => x.category === c.name);
           const total = cat ? `${fmt(cat.total)} este mes` : "Sin gastos este mes";
-          const catView: ViewType = `cat-${name}`;
+          const catView: ViewType = `cat-${c.name}`;
 
           return (
             <button
-              key={name}
+              key={c.name}
               onClick={() => setView(catView)}
               className="cat-card"
             >
-              <span className="cat-icon" style={{ background: m.bg }}>
-                {m.emoji}
-              </span>
+              <CategoryIcon icon={c.icon} color={c.color} size={40} shape="rounded" />
               <span className="cat-text">
-                <span className="cat-name">{name}</span>
+                <span className="cat-name">{c.name}</span>
                 <span className="cat-amount">{total}</span>
               </span>
             </button>
@@ -36,6 +42,27 @@ export default function CategoriasView() {
       </div>
 
       <style>{`
+        .cats-head {
+          display: flex;
+          justify-content: flex-end;
+          margin-bottom: 10px;
+        }
+
+        .cats-edit {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          background: var(--white);
+          border: 1px solid var(--border);
+          border-radius: 10px;
+          padding: 8px 12px;
+          font-size: 13px;
+          font-weight: 600;
+          color: var(--sage);
+          cursor: pointer;
+          font-family: var(--font-sans);
+        }
+
         .cats-grid {
           display: grid;
           grid-template-columns: repeat(2, 1fr);
@@ -59,17 +86,6 @@ export default function CategoriasView() {
 
         .cat-card:active {
           background: var(--bg);
-        }
-
-        .cat-icon {
-          font-size: clamp(20px, 5vw, 28px);
-          line-height: 1;
-          flex-shrink: 0;
-          padding: clamp(6px, 1.5vw, 8px);
-          border-radius: 10px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
         }
 
         .cat-text {

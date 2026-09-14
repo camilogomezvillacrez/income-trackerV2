@@ -3,12 +3,14 @@
 import { useState } from "react";
 import ModalBase from "./ModalBase";
 import { useDashboardStore, useToastStore } from "@/store/dashboardStore";
-import { CAT_META, EXP_CATS, INC_CATS, SUBCATS, SUBCAT_EMOJIS, PAYMENT_METHODS, PAYMENT_META, type PaymentMethod } from "@/constants/categories";
+import { PAYMENT_METHODS, PAYMENT_META, type PaymentMethod } from "@/constants/categories";
+import { CategoryGrid, SubcatGrid } from "@/components/categories/CategoryGrids";
+import { categoriesOf, findCategory } from "@/lib/categoryMeta";
 import { todayDate } from "@/lib/utils";
 import type { MovementType } from "@/types";
 
 export default function RegisterModal() {
-  const { closeModal, refresh } = useDashboardStore();
+  const { closeModal, refresh, data } = useDashboardStore();
   const toast = useToastStore((s) => s.show);
 
   const [tipo, setTipo] = useState<MovementType>("ingreso");
@@ -42,9 +44,8 @@ export default function RegisterModal() {
     refresh();
   }
 
-  const cats = tipo === "ingreso" ? INC_CATS : EXP_CATS;
-  const subs = cat ? SUBCATS[cat] : null;
-  const subEmojis = cat ? SUBCAT_EMOJIS[cat] ?? {} : {};
+  const categories = categoriesOf(data, tipo);
+  const subs = cat ? findCategory(data, cat, tipo).subs : [];
 
   return (
     <ModalBase title="Registrar movimiento">
@@ -81,12 +82,10 @@ export default function RegisterModal() {
         })}
       </div>
 
-      {/* Category grid */}
-      <CategoryGrid cats={cats} selected={cat} onSelect={selectCat} />
+      <CategoryGrid categories={categories} selected={cat} onSelect={selectCat} />
 
-      {/* Subcategory grid */}
-      {subs && tipo === "gasto" && (
-        <SubcatGrid subs={subs} emojis={subEmojis} selected={subcat} onSelect={setSubcat} />
+      {tipo === "gasto" && subs.length > 0 && (
+        <SubcatGrid subs={subs} selected={subcat} onSelect={setSubcat} />
       )}
 
       {/* Amount + Date */}
@@ -145,81 +144,6 @@ export default function RegisterModal() {
         <button onClick={submit} style={btnPrimary}>Guardar</button>
       </div>
     </ModalBase>
-  );
-}
-
-function CategoryGrid({ cats, selected, onSelect }: { cats: readonly string[]; selected: string | null; onSelect: (c: string) => void }) {
-  return (
-    <div style={{ marginBottom: "16px" }}>
-      <p style={{ fontSize: "10px", fontWeight: 600, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "8px" }}>
-        Categoría
-      </p>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "6px" }}>
-        {cats.map((name) => {
-          const m = CAT_META[name] ?? { emoji: "⚪", color: "#6B7280", bg: "#F3F4F6" };
-          const active = selected === name;
-          return (
-            <button
-              key={name}
-              onClick={() => onSelect(name)}
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: "5px",
-                padding: "10px 4px 8px",
-                border: `2px solid ${active ? m.color : "var(--border)"}`,
-                borderRadius: "10px",
-                cursor: "pointer",
-                background: active ? m.bg : "var(--bg)",
-                fontFamily: "var(--font-sans)",
-                transition: "all 0.15s",
-              }}
-            >
-              <span style={{ fontSize: "22px", lineHeight: 1 }}>{m.emoji}</span>
-              <span style={{ fontSize: "9px", fontWeight: 600, color: "var(--sub)", textAlign: "center", lineHeight: 1.3 }}>{name}</span>
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-function SubcatGrid({ subs, emojis, selected, onSelect }: { subs: string[]; emojis: Record<string, string>; selected: string | null; onSelect: (s: string) => void }) {
-  return (
-    <div style={{ marginBottom: "16px" }}>
-      <p style={{ fontSize: "10px", fontWeight: 600, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.07em", marginBottom: "8px" }}>
-        Subcategoría <span style={{ fontWeight: 400, textTransform: "none", letterSpacing: 0 }}>(opcional)</span>
-      </p>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "5px" }}>
-        {subs.map((s) => {
-          const active = selected === s;
-          return (
-            <button
-              key={s}
-              onClick={() => onSelect(active ? "" : s)}
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: "3px",
-                padding: "8px 4px 6px",
-                border: `1.5px solid ${active ? "var(--text)" : "var(--border)"}`,
-                borderRadius: "8px",
-                cursor: "pointer",
-                background: active ? "#EEF2FF" : "var(--bg)",
-                fontFamily: "var(--font-sans)",
-                transition: "all 0.15s",
-              }}
-            >
-              <span style={{ fontSize: "17px", lineHeight: 1 }}>{emojis[s] ?? "📌"}</span>
-              <span style={{ fontSize: "9px", color: "var(--sub)", textAlign: "center", lineHeight: 1.2 }}>{s}</span>
-            </button>
-          );
-        })}
-      </div>
-    </div>
   );
 }
 

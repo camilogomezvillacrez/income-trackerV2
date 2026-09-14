@@ -3,7 +3,8 @@
 import { useState } from "react";
 import ModalBase from "./ModalBase";
 import { useDashboardStore, useToastStore } from "@/store/dashboardStore";
-import { EXP_CATS, SUBCATS, PAYMENT_METHODS } from "@/constants/categories";
+import { PAYMENT_METHODS } from "@/constants/categories";
+import { categoriesOf, findCategory } from "@/lib/categoryMeta";
 
 const inp: React.CSSProperties = {
   width: "100%",
@@ -37,14 +38,14 @@ export default function FixedModal() {
 
   const [name, setName] = useState(editing?.name ?? "");
   const [amount, setAmount] = useState(editing ? String(editing.amount) : "");
-  const [category, setCategory] = useState(editing?.category ?? "Vivienda");
+  const [category, setCategory] = useState(editing?.category ?? categoriesOf(data, "gasto")[0]?.name ?? "General");
   const [subcategory, setSubcategory] = useState(editing?.subcategory ?? "");
   const [day, setDay] = useState(String(editing?.day_of_month ?? 1));
   const [method, setMethod] = useState(editing?.payment_method ?? "Efectivo");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-  const subs = SUBCATS[category] ?? [];
+  const subs = findCategory(data, category, "gasto").subs.map((s) => s.name);
 
   async function submit() {
     const monto = parseFloat(amount);
@@ -127,8 +128,8 @@ export default function FixedModal() {
         onChange={(e) => { setCategory(e.target.value); setSubcategory(""); }}
         style={inp}
       >
-        {EXP_CATS.map((c) => (
-          <option key={c} value={c}>{c}</option>
+        {categoriesOf(data, "gasto").map((c) => (
+          <option key={c.name} value={c.name}>{c.name}</option>
         ))}
       </select>
 

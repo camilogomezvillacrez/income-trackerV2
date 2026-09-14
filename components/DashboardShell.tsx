@@ -26,6 +26,7 @@ const CategoriasView      = dynamic(() => import("@/views/CategoriasView"));
 const CategoriaDetailView = dynamic(() => import("@/views/CategoriaDetailView"));
 const ConfiguracionView   = dynamic(() => import("@/views/ConfiguracionView"));
 const AsistenteView       = dynamic(() => import("@/views/AsistenteView"));
+const CategoriasAdminView = dynamic(() => import("@/views/CategoriasAdminView"));
 
 const loadRegisterModal = () => import("@/components/modals/RegisterModal");
 const RegisterModal    = dynamic(loadRegisterModal);
@@ -105,6 +106,7 @@ export default function DashboardShell({ userEmail, hasPasskey, initiallyLocked 
             {view === "cats"          && <CategoriasView />}
             {view === "asistente"     && <AsistenteView />}
             {view === "configuracion" && <ConfiguracionView />}
+            {view === "categorias-admin" && <CategoriasAdminView />}
             {isCatDetail              && <CategoriaDetailView catName={view.slice(4)} />}
           </div>
         </main>

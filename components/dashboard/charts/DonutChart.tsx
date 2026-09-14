@@ -2,7 +2,7 @@
 
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { useDashboardStore } from "@/store/dashboardStore";
-import { CAT_META } from "@/constants/categories";
+import { findCategory } from "@/lib/categoryMeta";
 import { fmt } from "@/lib/utils";
 
 export default function DonutChart() {
@@ -11,13 +11,17 @@ export default function DonutChart() {
   if (!data?.by_category.length) return null;
 
   const cats = data.by_category.slice(0, 7);
-  const chartData = cats.map((c) => ({
-    name: `${CAT_META[c.category]?.emoji ?? ""} ${c.category}`,
-    // El nombre lleva emoji para la leyenda; se guarda el crudo para navegar.
-    cat: c.category,
-    value: c.total,
-    color: CAT_META[c.category]?.color ?? "#6B7280",
-  }));
+  const chartData = cats.map((c) => {
+    const meta = findCategory(data, c.category, "gasto");
+    const emoji = meta.icon.startsWith("emoji:") ? `${meta.icon.slice(6)} ` : "";
+    return {
+      // La leyenda lleva el emoji si la categoría usa uno; se guarda el crudo para navegar.
+      name: `${emoji}${c.category}`,
+      cat: c.category,
+      value: c.total,
+      color: meta.color,
+    };
+  });
 
   return (
     <ResponsiveContainer width="100%" height="100%">

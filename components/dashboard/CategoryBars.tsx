@@ -1,7 +1,8 @@
 "use client";
 
 import { useDashboardStore } from "@/store/dashboardStore";
-import { CAT_META } from "@/constants/categories";
+import CategoryIcon from "@/components/common/CategoryIcon";
+import { findCategory } from "@/lib/categoryMeta";
 import { fmt } from "@/lib/utils";
 
 export default function CategoryBars() {
@@ -23,7 +24,7 @@ export default function CategoryBars() {
   return (
     <div>
       {by_category.slice(0, 7).map((c) => {
-        const meta = CAT_META[c.category] ?? { color: "#6B7280", emoji: "" };
+        const meta = findCategory(data, c.category, "gasto");
         const pct = total > 0 ? Math.round((c.total / total) * 100) : 0;
         const budget = budgets[c.category];
         const over = budget && c.total > budget;
@@ -35,8 +36,9 @@ export default function CategoryBars() {
             style={{ display: "block", width: "100%", textAlign: "left", background: "none", border: "none", padding: 0, marginBottom: "10px", cursor: "pointer", fontFamily: "var(--font-sans)" }}
           >
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
-              <span style={{ fontSize: "11px", color: "var(--text)", fontWeight: 500 }}>
-                {meta.emoji} {c.category}
+              <span style={{ fontSize: "11px", color: "var(--text)", fontWeight: 500, display: "inline-flex", alignItems: "center", gap: "6px" }}>
+                <CategoryIcon icon={meta.icon} color={meta.color} size={18} shape="rounded" />
+                {c.category}
               </span>
               <span style={{ fontSize: "11px", color: "var(--muted)" }}>
                 {pct}% · {fmt(c.total)}

@@ -1,4 +1,5 @@
 import { getDb } from "./db";
+import { CATEGORY_SELECT, rowToCategory, seedCategories } from "./categories";
 import type { DashboardData, Movement, Goal, Debt, DebtPayment, FixedExpense, CategoryTotal, MonthlyRow } from "@/types";
 
 function toNum(v: unknown): number {
@@ -20,7 +21,7 @@ export async function getDashboardData(month: string, userId: number): Promise<D
   const [
     allMonthsRes, monthlyRes, incRes, expRes, catRes, incCatRes, movsRes,
     weeklyRes, goalsRes, avgSavingsRes, debtsRes, paymentsRes, fixedRes,
-    budgetsRes, userRes,
+    budgetsRes, userRes, categoriesRes,
   ] = await db.batch([
     // ── All months with data for this user ──────────────────────
     {
@@ -127,6 +128,11 @@ export async function getDashboardData(month: string, userId: number): Promise<D
     // ── Savings target ───────────────────────────────────────────
     {
       sql: "SELECT savings_target FROM users WHERE id=?",
+      args: [userId],
+    },
+    // ── Categorías editables ─────────────────────────────────────
+    {
+      sql: CATEGORY_SELECT,
       args: [userId],
     },
   ], "read");
@@ -252,9 +258,18 @@ export async function getDashboardData(month: string, userId: number): Promise<D
 
   const savings_target = toNum(userRes.rows[0]?.savings_target ?? 20);
 
+  // Primera vez del usuario: se siembran sus categorías (solo ocurre una vez)
+  let categoryRows = categoriesRes.rows;
+  if (categoryRows.length === 0) {
+    await seedCategories(db, userId);
+    categoryRows = (await db.execute(CATEGORY_SELECT, [userId])).rows;
+  }
+  const categories = categoryRows.map(rowToCategory);
+
   return {
     monthly, by_category, by_cat_inc, recent, all_movs,
     month_inc, month_exp, balance, tasa_ahorro, savings_target,
     current_month, goals, debts, fixed_expenses, all_months, budgets, weekly,
+    categories,
   };
 }

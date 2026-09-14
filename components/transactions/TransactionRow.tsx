@@ -2,7 +2,9 @@
 
 import { Trash2 } from "lucide-react";
 import type { Movement } from "@/types";
-import { CAT_META, paymentMeta } from "@/constants/categories";
+import { paymentMeta } from "@/constants/categories";
+import CategoryIcon from "@/components/common/CategoryIcon";
+import { findCategory } from "@/lib/categoryMeta";
 import { useDashboardStore } from "@/store/dashboardStore";
 import Money from "@/components/common/Money";
 import { useRef } from "react";
@@ -14,14 +16,14 @@ interface Props {
 }
 
 export default function TransactionRow({ r, flush = false }: Props) {
-  const { openModal, setEditTarget, setDeleteTarget } = useDashboardStore();
+  const { openModal, setEditTarget, setDeleteTarget, data } = useDashboardStore();
   const innerRef = useRef<HTMLDivElement>(null);
   const startX   = useRef(0);
   const startY   = useRef(0);
   const moved    = useRef(false);
 
   const isInc = r.tipo === "ingreso";
-  const emoji = CAT_META[r.category]?.emoji ?? "💰";
+  const category = findCategory(data, r.category, r.tipo);
 
   // Subtítulo en texto simple, sin chips: "Suscripciones · Nu"
   const pm = !isInc && r.payment_method && r.payment_method !== "Efectivo"
@@ -87,7 +89,7 @@ export default function TransactionRow({ r, flush = false }: Props) {
         }}
         style={{ padding: flush ? "10px 0" : "11px 14px" }}
       >
-        <div className="tx-icon" aria-hidden>{emoji}</div>
+        <CategoryIcon icon={category.icon} color={category.color} size={40} />
 
         <div className="tx-text">
           <div className="tx-title">{r.note || r.category}</div>

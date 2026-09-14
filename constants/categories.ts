@@ -1,3 +1,5 @@
+import type { Category } from "@/types";
+
 export interface CatMeta {
   emoji: string;
   color: string;
@@ -102,4 +104,28 @@ export const PAYMENT_META: Record<PaymentMethod, { emoji: string; short: string 
 /** Métodos que no están en la lista (p. ej. el nombre de tarjeta que manda Apple Pay) usan 💳 y su propio nombre. */
 export function paymentMeta(method: string | null | undefined) {
   return PAYMENT_META[method as PaymentMethod] ?? { emoji: "💳", short: method ?? "" };
+}
+
+/**
+ * Categorías con las que arranca cada usuario. Se copian a la base de datos la
+ * primera vez (lib/categories.ts) y desde ahí el usuario las edita.
+ */
+export function buildDefaultCategories(): Omit<Category, "id">[] {
+  const gasto = EXP_CATS.map((name, i) => ({
+    tipo: "gasto" as const,
+    name,
+    icon: `emoji:${CAT_META[name].emoji}`,
+    color: CAT_META[name].color,
+    subs: (SUBCATS[name] ?? []).map((s) => ({ name: s, emoji: SUBCAT_EMOJIS[name]?.[s] ?? "" })),
+    position: i,
+  }));
+  const ingreso = INC_CATS.map((name, i) => ({
+    tipo: "ingreso" as const,
+    name,
+    icon: `emoji:${CAT_META[name].emoji}`,
+    color: CAT_META[name].color,
+    subs: [],
+    position: i,
+  }));
+  return [...gasto, ...ingreso];
 }

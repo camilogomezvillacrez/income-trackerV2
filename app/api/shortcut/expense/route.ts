@@ -4,7 +4,8 @@ import { getDb } from "@/lib/db";
 import { hashShortcutToken } from "@/lib/shortcutToken";
 import { sendPushToUser } from "@/lib/push";
 import { categorizeByRules, parseAmount, todayBogota } from "@/lib/shortcutParse";
-import { EXP_CATS, SUBCATS } from "@/constants/categories";
+import { getCategories } from "@/lib/categories";
+import type { Category } from "@/types";
 
 /*
  * Endpoint del atajo de Apple Wallet. Ruta pública: se autentica con el
@@ -14,12 +15,14 @@ import { EXP_CATS, SUBCATS } from "@/constants/categories";
 
 const fmt = (n: number) => `$ ${n.toLocaleString("es-CO", { maximumFractionDigits: 2 })}`;
 
-/** Comercio desconocido para las reglas: Claude elige entre las categorías de la app. */
-async function categorizeWithAI(merchant: string) {
-  if (!process.env.ANTHROPIC_API_KEY || !merchant) return null;
+type Pick = { category: string; subcategory: string | null };
+
+/** Comercio desconocido para las reglas: Claude elige entre las categorías del usuario. */
+async function categorizeWithAI(merchant: string, categories: Category[]): Promise<Pick | null> {
+  if (!process.env.ANTHROPIC_API_KEY || !merchant || categories.length === 0) return null;
   try {
     const client = new Anthropic({ timeout: 6000, maxRetries: 0 });
-    const options = EXP_CATS.map((c) => `${c}: ${(SUBCATS[c] ?? []).join(", ")}`).join("\n");
+    const options = categories.map((c) => `${c.name}: ${c.subs.map((s) => s.name).join(", ")}`).join("\n");
     const msg = await client.messages.create({
       model: "claude-haiku-4-5-20251001",
       max_tokens: 60,
@@ -34,13 +37,21 @@ async function categorizeWithAI(merchant: string) {
     });
     const text = msg.content.find((b) => b.type === "text")?.text ?? "";
     const parsed = JSON.parse(text.slice(text.indexOf("{"), text.lastIndexOf("}") + 1));
-    const category = String(parsed.category);
-    if (!(EXP_CATS as readonly string[]).includes(category)) return null;
-    const subcategory = SUBCATS[category]?.includes(parsed.subcategory) ? String(parsed.subcategory) : null;
-    return { category, subcategory };
+    const cat = categories.find((c) => c.name === String(parsed.category));
+    if (!cat) return null;
+    const subcategory = cat.subs.some((s) => s.name === parsed.subcategory) ? String(parsed.subcategory) : null;
+    return { category: cat.name, subcategory };
   } catch {
     return null;
   }
+}
+
+/** Las reglas conocen los nombres por defecto: solo sirven si el usuario conserva esa categoría. */
+function ruleForUser(merchant: string, categories: Category[]): Pick | null {
+  const rule = categorizeByRules(merchant);
+  const cat = rule && categories.find((c) => c.name === rule.category);
+  if (!rule || !cat) return null;
+  return { category: cat.name, subcategory: cat.subs.some((s) => s.name === rule.subcategory) ? rule.subcategory : null };
 }
 
 export async function POST(req: NextRequest) {
@@ -68,8 +79,9 @@ export async function POST(req: NextRequest) {
   const merchant = String(body.merchant ?? "").trim().slice(0, 120);
   const card     = String(body.card ?? "").trim().slice(0, 60);
 
-  const cat = categorizeByRules(merchant)
-    ?? await categorizeWithAI(merchant)
+  const expenseCats = (await getCategories(Number(userId))).filter((c) => c.tipo === "gasto");
+  const cat = ruleForUser(merchant, expenseCats)
+    ?? await categorizeWithAI(merchant, expenseCats)
     ?? { category: "General", subcategory: null };
 
   await db.execute(
