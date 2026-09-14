@@ -38,9 +38,9 @@ export async function proxy(req: NextRequest) {
   const last = session.lastActivity ?? now;
 
   if (now - last > SESSION_IDLE_MS) {
-    // Con Face ID la sesión se conserva: la API responde "bloqueada" y la
-    // página pinta la pantalla de desbloqueo. Sin Face ID, a iniciar sesión.
-    if (!session.hasPasskey) return endSession(req, isApi);
+    // Inactiva: la sesión NO se borra aquí. La API responde "bloqueada" (ninguna
+    // ruta de datos acepta una sesión inactiva) y la página decide, mirando la
+    // base de datos, si pide Face ID o manda al login.
     return isApi
       ? NextResponse.json({ error: "Bloqueada", locked: true }, { status: 401 })
       : NextResponse.next();
@@ -50,8 +50,12 @@ export async function proxy(req: NextRequest) {
   // así la inactividad real del usuario sí llega a vencer.
   const isBackgroundPoll = req.headers.get("x-bg-poll") === "1";
 
+  // Las rutas de Face ID guardan su propia sesión (reto, marca de passkey):
+  // si el proxy también la guardara, una cookie podría pisar a la otra.
+  const writesOwnSession = pathname.startsWith("/api/auth/webauthn");
+
   // Se guarda como mucho una vez cada 30s para no re-cifrar en cada request.
-  if (!isBackgroundPoll && now - last > 30_000) {
+  if (!isBackgroundPoll && !writesOwnSession && now - last > 30_000) {
     session.lastActivity = now;
     await session.save();
   }

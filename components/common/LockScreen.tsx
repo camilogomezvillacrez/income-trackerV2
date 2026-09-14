@@ -11,7 +11,8 @@ import { logout } from "@/lib/clientAuth";
 
 async function fetchOptions(): Promise<PublicKeyCredentialRequestOptionsJSON | null> {
   const res = await fetch("/api/auth/webauthn/authenticate/options", { method: "POST" });
-  if (res.status === 401) { window.location.href = "/login"; return null; }
+  // 401: sin sesión · 400: la cuenta no tiene Face ID → toca la contraseña
+  if (res.status === 401 || res.status === 400) { await logout(); return null; }
   return res.ok ? res.json() : null;
 }
 

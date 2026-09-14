@@ -53,6 +53,7 @@ export async function POST(req: NextRequest) {
 
   session.challenge    = undefined;
   session.lastActivity = Date.now();
+  session.hasPasskey   = true;
   await session.save();
 
   return NextResponse.json({ ok: true });
