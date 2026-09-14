@@ -23,6 +23,12 @@
 
   --sage: #4A7C59;
 
+  /* Movimientos: tonos suaves para distinguir gasto/ingreso de un vistazo */
+  --expense: #B5473F;
+  --expense-bg: #FDF6F5;
+  --income: #2F7A4B;
+  --income-bg: #F3F9F4;
+
   /* shadcn compatibility */
   --background: var(--bg);
   --foreground: var(--text);

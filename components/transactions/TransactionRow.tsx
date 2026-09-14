@@ -17,7 +17,9 @@ export default function TransactionRow({ r }: Props) {
   const moved    = useRef(false);
 
   const isInc = r.tipo === "ingreso";
-  const color = isInc ? "var(--green)" : "var(--red)";
+  // Tinte suave por tipo: se distingue gasto/ingreso sin saturar la lista
+  const color   = isInc ? "var(--income)" : "var(--expense)";
+  const rowBg   = isInc ? "var(--income-bg)" : "var(--expense-bg)";
   const meta  = CAT_META[r.category] ?? { emoji: "💰", color: "#6B7280", bg: "#F3F4F6" };
 
   const pmLabel =
@@ -70,7 +72,7 @@ export default function TransactionRow({ r }: Props) {
       <div
         ref={innerRef}
         className="tx-swipe-inner"
-        style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "9px 0", background: "var(--white)", position: "relative", zIndex: 1 }}
+        style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "9px 8px", background: rowBg, position: "relative", zIndex: 1 }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "10px", minWidth: 0 }}>
           {/* Category emoji icon */}
