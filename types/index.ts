@@ -120,6 +120,40 @@ export interface DashboardData {
   categories: Category[];
 }
 
+/** Datos que la IA extrae de la foto de un recibo, antes de que el usuario los confirme. */
+export interface ReceiptFields {
+  proveedor: string | null;
+  nit: string | null;
+  valor: number | null;
+  iva: number | null;
+  fecha: string | null;
+  correo: string | null;
+  telefono: string | null;
+  direccion: string | null;
+  factura: string | null;
+  metodo_pago: string | null;
+  categoria: string | null;
+  subcategoria: string | null;
+  items: { desc: string; valor: number | null }[];
+  confianza: "alta" | "media" | "baja";
+  nota: string | null;
+}
+
+/** Recibo ya guardado. `image_path` es la ruta en el Blob privado, no una URL pública. */
+export interface Receipt {
+  id: number;
+  expense_id: number | null;
+  image_path: string;
+  proveedor: string | null;
+  nit: string | null;
+  valor: number | null;
+  correo: string | null;
+  telefono: string | null;
+  fecha: string | null;
+  categoria: string | null;
+  created_at: string;
+}
+
 export type ViewType =
   | "resumen"
   | "movimientos"
@@ -127,6 +161,7 @@ export type ViewType =
   | "deudas"
   | "cats"
   | "asistente"
+  | "recibos"
   | "configuracion"
   | "categorias-admin"
   | `cat-${string}`;

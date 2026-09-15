@@ -95,6 +95,11 @@ export async function GET(req: NextRequest) {
       db.execute("SELECT savings_target FROM users WHERE id=?", [uid]),
     ]);
 
+  const receipts = await db.execute(
+    "SELECT * FROM receipts WHERE user_id=? ORDER BY date(fecha) DESC, id DESC",
+    [uid]
+  );
+
   const presupuestos: Record<string, number> = {};
   for (const b of budgets.rows) presupuestos[String(b.category)] = toNum(b.amount);
 
@@ -321,6 +326,33 @@ export async function GET(req: NextRequest) {
       falta: Math.max(target - saved, 0),
       pct: target > 0 ? `${Math.round((saved / target) * 100)}%` : "0%",
       estado: toNum(g.completed) ? "Cumplida" : "En progreso",
+    });
+  }
+
+  // ── 10. Recibos escaneados ───────────────────────────────
+  // Los datos del emisor (NIT, correo, teléfono) solo viven aquí: el gasto en
+  // Movimientos no los guarda, y son los que pide la contabilidad formal.
+  const ws10 = wb.addWorksheet("Recibos");
+  setupSheet(ws10, [
+    { header: "Fecha", key: "fecha", width: 12 },
+    { header: "Proveedor", key: "proveedor", width: 30 },
+    { header: "NIT", key: "nit", width: 18 },
+    { header: "Valor", key: "valor", width: 15, money: true },
+    { header: "Categoría", key: "categoria", width: 20 },
+    { header: "Correo", key: "correo", width: 28 },
+    { header: "Teléfono", key: "telefono", width: 16 },
+    { header: "Escaneado", key: "creado", width: 12 },
+  ]);
+  for (const r of receipts.rows) {
+    ws10.addRow({
+      fecha: r.fecha ? String(r.fecha) : "",
+      proveedor: r.proveedor ? String(r.proveedor) : "",
+      nit: r.nit ? String(r.nit) : "",
+      valor: toNum(r.valor),
+      categoria: r.categoria ? String(r.categoria) : "",
+      correo: r.correo ? String(r.correo) : "",
+      telefono: r.telefono ? String(r.telefono) : "",
+      creado: String(r.created_at).slice(0, 10),
     });
   }
 

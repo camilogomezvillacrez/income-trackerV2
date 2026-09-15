@@ -26,7 +26,9 @@ const CategoriasView      = dynamic(() => import("@/views/CategoriasView"));
 const CategoriaDetailView = dynamic(() => import("@/views/CategoriaDetailView"));
 const ConfiguracionView   = dynamic(() => import("@/views/ConfiguracionView"));
 const AsistenteView       = dynamic(() => import("@/views/AsistenteView"));
+const RecibosView         = dynamic(() => import("@/views/RecibosView"));
 const CategoriasAdminView = dynamic(() => import("@/views/CategoriasAdminView"));
+const AssistantBubble     = dynamic(() => import("@/components/common/AssistantBubble"));
 
 const loadRegisterModal = () => import("@/components/modals/RegisterModal");
 const RegisterModal    = dynamic(loadRegisterModal);
@@ -105,6 +107,7 @@ export default function DashboardShell({ userEmail, hasPasskey, initiallyLocked 
             {view === "deudas"        && <DeudasView />}
             {view === "cats"          && <CategoriasView />}
             {view === "asistente"     && <AsistenteView />}
+            {view === "recibos"       && <RecibosView />}
             {view === "configuracion" && <ConfiguracionView />}
             {view === "categorias-admin" && <CategoriasAdminView />}
             {isCatDetail              && <CategoriaDetailView catName={view.slice(4)} />}
@@ -138,6 +141,9 @@ export default function DashboardShell({ userEmail, hasPasskey, initiallyLocked 
       {modal === "abono-deuda" && <DebtAbonoModal />}
       {modal === "fijo"     && <FixedModal />}
       {reportMonth          && <MonthReportModal month={reportMonth} />}
+
+      {/* Asistente flotante: vive en el shell para estar en todas las vistas */}
+      <AssistantBubble />
 
       <ToastContainer />
 
