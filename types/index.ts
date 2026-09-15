@@ -160,7 +160,6 @@ export type ViewType =
   | "metas"
   | "deudas"
   | "cats"
-  | "asistente"
   | "recibos"
   | "configuracion"
   | "categorias-admin"

@@ -20,7 +20,7 @@ const CONFIANZA_LABEL = {
  * confirma. Un OCR equivocado que se guarda solo daña las cuentas del mes.
  */
 export default function ReceiptConfirmModal() {
-  const { pending, setPending } = useReceiptStore();
+  const { pending, setPending, markSaved } = useReceiptStore();
   const { refresh, data } = useDashboardStore();
   const toast = useToastStore((s) => s.show);
 
@@ -70,6 +70,7 @@ export default function ReceiptConfirmModal() {
 
       close();
       toast("🧾 Recibo guardado");
+      markSaved();
       refresh();
     } catch {
       toast("No se pudo guardar el recibo", "err");

@@ -1,94 +1,32 @@
 "use client";
 
-import { useRef } from "react";
-import dynamic from "next/dynamic";
-import { Bot, X, Camera, ReceiptText, Loader2 } from "lucide-react";
+import { useState } from "react";
+import { Bot, X } from "lucide-react";
 import ChatPanel from "@/components/common/ChatPanel";
-import { useDashboardStore, useToastStore } from "@/store/dashboardStore";
-import { useReceiptStore } from "@/store/receiptStore";
-import { resizeForUpload } from "@/lib/imageResize";
-
-const ReceiptConfirmModal = dynamic(() => import("@/components/modals/ReceiptConfirmModal"));
+import { useDashboardStore } from "@/store/dashboardStore";
 
 /**
- * Asistente flotante disponible en toda la app: escanea recibos con la cámara
- * y responde preguntas. Vive en el shell, no en una vista, para que siga ahí
- * sin importar en qué pantalla esté el usuario.
+ * Chat con la IA disponible en toda la app. Vive en el shell, no en una vista,
+ * para que siga ahí sin importar en qué pantalla esté el usuario.
+ * El escaneo de recibos está en la pestaña Recibos, no aquí.
  */
 export default function AssistantBubble() {
-  const { open, scanning, pending, setOpen, setScanning, setPending } = useReceiptStore();
-  const setView = useDashboardStore((s) => s.setView);
+  const [open, setOpen] = useState(false);
   const locked = useDashboardStore((s) => s.locked);
-  const toast = useToastStore((s) => s.show);
-  const fileRef = useRef<HTMLInputElement>(null);
-
-  async function onFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    e.target.value = ""; // permite volver a tomar la misma foto
-    if (!file) return;
-
-    setOpen(false);
-    setScanning(true);
-    let previewUrl = "";
-
-    try {
-      const small = await resizeForUpload(file);
-      previewUrl = URL.createObjectURL(small);
-
-      const form = new FormData();
-      form.append("image", small);
-      const res = await fetch("/api/receipts/scan", { method: "POST", body: form });
-
-      if (res.status === 401) { window.location.href = "/login"; return; }
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error ?? "Error al escanear");
-
-      if (json.error) toast(json.error, "err");
-      setPending({ pathname: json.pathname, fields: json.fields, previewUrl });
-    } catch {
-      if (previewUrl) URL.revokeObjectURL(previewUrl);
-      toast("No se pudo escanear el recibo", "err");
-    } finally {
-      setScanning(false);
-    }
-  }
 
   if (locked) return null;
 
   return (
     <>
-      <input
-        ref={fileRef}
-        type="file"
-        accept="image/*"
-        capture="environment"
-        onChange={onFile}
-        style={{ display: "none" }}
-      />
-
       {open && (
         <>
           <div onClick={() => setOpen(false)} className="ab-backdrop" />
           <div className="ab-panel">
             <div className="ab-head">
               <Bot size={16} color="#4338CA" />
-              <span style={{ fontSize: "13px", fontWeight: 600, color: "var(--text)" }}>Asistente</span>
+              <span style={{ fontSize: "13px", fontWeight: 600, color: "var(--text)" }}>Asistente IA</span>
               <button onClick={() => setOpen(false)} className="ab-close" aria-label="Cerrar">
                 <X size={18} />
-              </button>
-            </div>
-
-            <div className="ab-actions">
-              <button onClick={() => fileRef.current?.click()} className="ab-action ab-action-main">
-                <Camera size={16} />
-                Escanear recibo
-              </button>
-              <button
-                onClick={() => { setOpen(false); setView("recibos"); }}
-                className="ab-action"
-              >
-                <ReceiptText size={16} />
-                Mis recibos
               </button>
             </div>
 
@@ -103,12 +41,9 @@ export default function AssistantBubble() {
         onClick={() => setOpen(!open)}
         className="ab-bubble"
         aria-label="Asistente IA"
-        disabled={scanning}
       >
-        {scanning ? <Loader2 size={24} className="ab-spin" /> : open ? <X size={24} /> : <Bot size={24} />}
+        {open ? <X size={24} /> : <Bot size={24} />}
       </button>
-
-      {pending && <ReceiptConfirmModal />}
 
       <style>{`
         .ab-bubble {
@@ -132,8 +67,6 @@ export default function AssistantBubble() {
         @media (min-width: 769px) {
           .ab-bubble { bottom: 24px; right: 24px; }
         }
-        .ab-spin { animation: ab-rotate 1s linear infinite; }
-        @keyframes ab-rotate { to { transform: rotate(360deg); } }
 
         .ab-backdrop {
           position: fixed;
@@ -182,34 +115,6 @@ export default function AssistantBubble() {
           color: var(--muted);
           display: flex;
           padding: 0;
-        }
-        .ab-actions {
-          display: flex;
-          gap: 8px;
-          padding: 12px 14px;
-          border-bottom: 1px solid var(--border);
-          flex-shrink: 0;
-        }
-        .ab-action {
-          flex: 1;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 6px;
-          padding: 11px 8px;
-          border: 1px solid var(--border);
-          border-radius: 9px;
-          background: var(--bg);
-          color: var(--sub);
-          font-size: 12px;
-          font-weight: 600;
-          font-family: var(--font-sans);
-          cursor: pointer;
-        }
-        .ab-action-main {
-          background: #4338CA;
-          border-color: #4338CA;
-          color: #fff;
         }
       `}</style>
     </>

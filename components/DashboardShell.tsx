@@ -10,6 +10,7 @@ import LockScreen from "@/components/common/LockScreen";
 import { useDashboard, markActive } from "@/hooks/useDashboard";
 import { isUnlockedThisLaunch, logout, markUnlocked } from "@/lib/clientAuth";
 import { useDashboardStore } from "@/store/dashboardStore";
+import { useReceiptStore } from "@/store/receiptStore";
 
 import ResumenView from "@/views/ResumenView";
 
@@ -25,10 +26,10 @@ const DeudasView          = dynamic(() => import("@/views/DeudasView"));
 const CategoriasView      = dynamic(() => import("@/views/CategoriasView"));
 const CategoriaDetailView = dynamic(() => import("@/views/CategoriaDetailView"));
 const ConfiguracionView   = dynamic(() => import("@/views/ConfiguracionView"));
-const AsistenteView       = dynamic(() => import("@/views/AsistenteView"));
 const RecibosView         = dynamic(() => import("@/views/RecibosView"));
 const CategoriasAdminView = dynamic(() => import("@/views/CategoriasAdminView"));
 const AssistantBubble     = dynamic(() => import("@/components/common/AssistantBubble"));
+const ReceiptConfirmModal = dynamic(() => import("@/components/modals/ReceiptConfirmModal"));
 
 const loadRegisterModal = () => import("@/components/modals/RegisterModal");
 const RegisterModal    = dynamic(loadRegisterModal);
@@ -73,6 +74,7 @@ export default function DashboardShell({ userEmail, hasPasskey, initiallyLocked 
 
   const { view, modal, openModal, reportMonth } = useDashboardStore();
   const storeLocked = useDashboardStore((s) => s.locked);
+  const receiptPending = useReceiptStore((s) => s.pending);
   const locked = mounted ? storeLocked : initiallyLocked;
 
   const isCatDetail = view.startsWith("cat-");
@@ -106,7 +108,6 @@ export default function DashboardShell({ userEmail, hasPasskey, initiallyLocked 
             {view === "metas"         && <MetasView />}
             {view === "deudas"        && <DeudasView />}
             {view === "cats"          && <CategoriasView />}
-            {view === "asistente"     && <AsistenteView />}
             {view === "recibos"       && <RecibosView />}
             {view === "configuracion" && <ConfiguracionView />}
             {view === "categorias-admin" && <CategoriasAdminView />}
@@ -141,8 +142,10 @@ export default function DashboardShell({ userEmail, hasPasskey, initiallyLocked 
       {modal === "abono-deuda" && <DebtAbonoModal />}
       {modal === "fijo"     && <FixedModal />}
       {reportMonth          && <MonthReportModal month={reportMonth} />}
+      {/* En el shell y no en Recibos: si cambias de pantalla mientras la IA lee, igual aparece */}
+      {receiptPending       && <ReceiptConfirmModal />}
 
-      {/* Asistente flotante: vive en el shell para estar en todas las vistas */}
+      {/* Asistente flotante (solo chat): vive en el shell para estar en todas las vistas */}
       <AssistantBubble />
 
       <ToastContainer />

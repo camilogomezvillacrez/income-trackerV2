@@ -1,13 +1,85 @@
 import { NextRequest, NextResponse } from "next/server";
 import ExcelJS from "exceljs";
+import { get } from "@vercel/blob";
+import { groupByCompany } from "@/lib/receiptGroups";
 import { getDb } from "@/lib/db";
 import { getAuthUser, unauthorized } from "@/lib/auth";
 import { currentMonth, monthLabel } from "@/lib/utils";
 
 const MONEY = '"$"#,##0';
 
+// Miniatura de la foto en la hoja Facturas (px). La columna mide unos 7px por unidad de ancho.
+const THUMB_W = 110;
+const THUMB_H = 150;
+const THUMB_COL_WIDTH = 17;
+
+export const maxDuration = 60;
+
 function toNum(v: unknown): number {
   return typeof v === "number" ? v : Number(v ?? 0);
+}
+
+function str(v: unknown): string | null {
+  return typeof v === "string" && v.trim() ? v.trim() : null;
+}
+
+function parseRaw(v: unknown): Record<string, unknown> {
+  if (typeof v !== "string") return {};
+  try {
+    const o = JSON.parse(v);
+    return o && typeof o === "object" ? o : {};
+  } catch {
+    return {};
+  }
+}
+
+interface Foto {
+  buffer: Buffer;
+  ext: "jpeg" | "png";
+  width: number;
+  height: number;
+}
+
+/** Ancho y alto leídos de la cabecera, sin decodificar la imagen. Excel solo acepta JPEG y PNG. */
+function imageInfo(buf: Buffer): Omit<Foto, "buffer"> | null {
+  if (buf.length > 24 && buf.readUInt32BE(0) === 0x89504e47) {
+    return { ext: "png", width: buf.readUInt32BE(16), height: buf.readUInt32BE(20) };
+  }
+  if (buf.length > 4 && buf[0] === 0xff && buf[1] === 0xd8) {
+    let i = 2;
+    while (i + 9 < buf.length) {
+      if (buf[i] !== 0xff) { i++; continue; }
+      const marker = buf[i + 1];
+      // SOF0..SOF15 salvo DHT (C4), JPG (C8) y DAC (CC)
+      if (marker >= 0xc0 && marker <= 0xcf && ![0xc4, 0xc8, 0xcc].includes(marker)) {
+        return { ext: "jpeg", height: buf.readUInt16BE(i + 5), width: buf.readUInt16BE(i + 7) };
+      }
+      i += 2 + buf.readUInt16BE(i + 2);
+    }
+  }
+  return null;
+}
+
+/** Baja las fotos del Blob privado de a pocas; una que falle no tumba el Excel. */
+async function loadImages(list: { id: number; path: string }[]): Promise<Map<number, Foto>> {
+  const out = new Map<number, Foto>();
+  const BATCH = 8;
+  for (let i = 0; i < list.length; i += BATCH) {
+    await Promise.all(
+      list.slice(i, i + BATCH).map(async ({ id, path }) => {
+        try {
+          const blob = await get(path, { access: "private" });
+          if (!blob?.stream) return;
+          const buffer = Buffer.from(await new Response(blob.stream).arrayBuffer());
+          const info = imageInfo(buffer);
+          if (info && info.width > 0 && info.height > 0) out.set(id, { buffer, ...info });
+        } catch {
+          // sin foto en esa fila
+        }
+      })
+    );
+  }
+  return out;
 }
 
 /** Encabezado con estilo + anchos de columna + fila congelada */
@@ -329,31 +401,122 @@ export async function GET(req: NextRequest) {
     });
   }
 
-  // ── 10. Recibos escaneados ───────────────────────────────
+  // ── 10 y 11. Facturas agrupadas por empresa, con la foto ──
   // Los datos del emisor (NIT, correo, teléfono) solo viven aquí: el gasto en
   // Movimientos no los guarda, y son los que pide la contabilidad formal.
-  const ws10 = wb.addWorksheet("Recibos");
-  setupSheet(ws10, [
-    { header: "Fecha", key: "fecha", width: 12 },
-    { header: "Proveedor", key: "proveedor", width: 30 },
-    { header: "NIT", key: "nit", width: 18 },
-    { header: "Valor", key: "valor", width: 15, money: true },
-    { header: "Categoría", key: "categoria", width: 20 },
-    { header: "Correo", key: "correo", width: 28 },
-    { header: "Teléfono", key: "telefono", width: 16 },
-    { header: "Escaneado", key: "creado", width: 12 },
-  ]);
-  for (const r of receipts.rows) {
-    ws10.addRow({
-      fecha: r.fecha ? String(r.fecha) : "",
-      proveedor: r.proveedor ? String(r.proveedor) : "",
-      nit: r.nit ? String(r.nit) : "",
-      valor: toNum(r.valor),
+  const recibos = receipts.rows.map((r) => {
+    const raw = parseRaw(r.raw_ai_json);
+    return {
+      id: Number(r.id),
+      image_url: String(r.image_url),
+      proveedor: r.proveedor ? String(r.proveedor) : null,
+      nit: r.nit ? String(r.nit) : null,
+      valor: r.valor === null ? null : toNum(r.valor),
+      fecha: r.fecha ? String(r.fecha) : null,
       categoria: r.categoria ? String(r.categoria) : "",
       correo: r.correo ? String(r.correo) : "",
       telefono: r.telefono ? String(r.telefono) : "",
-      creado: String(r.created_at).slice(0, 10),
+      // Solo lo leyó la IA, el formulario no los pide
+      factura: str(raw.factura),
+      direccion: str(raw.direccion),
+      iva: typeof raw.iva === "number" ? raw.iva : null,
+      nota: str(raw.nota),
+    };
+  });
+  const empresas = groupByCompany(recibos);
+  const fotos = await loadImages(recibos.map((r) => ({ id: r.id, path: r.image_url })));
+
+  // 10. Empresas: una fila por empresa para ubicarse rápido
+  const ws10 = wb.addWorksheet("Empresas");
+  setupSheet(ws10, [
+    { header: "Empresa", key: "proveedor", width: 32 },
+    { header: "NIT", key: "nit", width: 16 },
+    { header: "Facturas", key: "n", width: 10 },
+    { header: "Total", key: "total", width: 15, money: true },
+    { header: "Última factura", key: "ultima", width: 14 },
+    { header: "Correo", key: "correo", width: 28 },
+    { header: "Teléfono", key: "telefono", width: 16 },
+    { header: "Dirección", key: "direccion", width: 30 },
+  ]);
+  for (const g of [...empresas].sort((a, b) => b.total - a.total)) {
+    const dato = (k: "correo" | "telefono" | "direccion") => g.items.find((i) => i[k])?.[k] ?? "";
+    ws10.addRow({
+      proveedor: g.proveedor,
+      nit: g.nit ?? "",
+      n: g.items.length,
+      total: g.total,
+      ultima: g.items[0]?.fecha ?? "",
+      correo: dato("correo"),
+      telefono: dato("telefono"),
+      direccion: dato("direccion"),
     });
+  }
+
+  // 11. Facturas: bloque por empresa, cada factura con su foto al lado
+  const ws11 = wb.addWorksheet("Facturas");
+  setupSheet(ws11, [
+    { header: "Foto", key: "foto", width: THUMB_COL_WIDTH },
+    { header: "Fecha", key: "fecha", width: 12 },
+    { header: "N° factura", key: "factura", width: 16 },
+    { header: "Valor", key: "valor", width: 15, money: true },
+    { header: "IVA", key: "iva", width: 13, money: true },
+    { header: "Categoría", key: "categoria", width: 18 },
+    { header: "Descripción", key: "nota", width: 30 },
+  ]);
+  const LAST_COL = 7;
+
+  for (const g of empresas) {
+    const contacto = [g.items.find((i) => i.telefono)?.telefono, g.items.find((i) => i.correo)?.correo]
+      .filter(Boolean)
+      .join(" · ");
+
+    const band = ws11.addRow([]);
+    ws11.mergeCells(band.number, 1, band.number, LAST_COL);
+    band.getCell(1).value = `${g.proveedor.toUpperCase()}${g.nit ? `   ·   NIT ${g.nit}` : ""}${contacto ? `   ·   ${contacto}` : ""}`;
+    band.font = { bold: true, color: { argb: "FFFFFFFF" }, size: 12 };
+    band.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF3730A3" } };
+    band.alignment = { vertical: "middle" };
+    band.height = 24;
+
+    for (const r of g.items) {
+      const row = ws11.addRow({
+        fecha: r.fecha ?? "",
+        factura: r.factura ?? "",
+        valor: r.valor ?? "",
+        iva: r.iva ?? "",
+        categoria: r.categoria,
+        nota: r.nota ?? "",
+      });
+      row.alignment = { vertical: "top", wrapText: true };
+
+      const foto = fotos.get(r.id);
+      if (foto) {
+        // Se incrusta la foto completa: Excel muestra la miniatura y al
+        // agrandarla se lee el recibo entero
+        const imageId = wb.addImage({ buffer: foto.buffer as unknown as ExcelJS.Buffer, extension: foto.ext });
+        const scale = Math.min(THUMB_W / foto.width, THUMB_H / foto.height);
+        const w = Math.round(foto.width * scale);
+        const h = Math.round(foto.height * scale);
+        ws11.addImage(imageId, {
+          tl: { col: 0.08, row: row.number - 1 + 0.08 },
+          ext: { width: w, height: h },
+          editAs: "oneCell",
+        });
+        row.height = (h + 12) * 0.75; // px → puntos
+      } else {
+        row.getCell("foto").value = "sin foto";
+        row.getCell("foto").font = { italic: true, color: { argb: "FF9CA3AF" } };
+      }
+    }
+
+    const sub = ws11.addRow({ factura: `Total ${g.items.length === 1 ? "1 factura" : `${g.items.length} facturas`}`, valor: g.total });
+    sub.font = { bold: true };
+    sub.getCell("factura").alignment = { horizontal: "right" };
+    for (let c = 1; c <= LAST_COL; c++) {
+      sub.getCell(c).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FFEEF2FF" } };
+    }
+
+    ws11.addRow([]);
   }
 
   const buffer = await wb.xlsx.writeBuffer();

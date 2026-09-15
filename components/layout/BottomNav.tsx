@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import { Home, ArrowLeftRight, Bot, HandCoins } from "lucide-react";
+import { Home, ArrowLeftRight, ReceiptText, HandCoins } from "lucide-react";
 import { useDashboardStore } from "@/store/dashboardStore";
 import type { ViewType } from "@/types";
 
@@ -26,7 +26,7 @@ const ITEMS: BnItem[] = [
   { icon: <Home size={22} strokeWidth={1.8} />,            iconActive: <Home size={22} strokeWidth={2.5} />,            label: "Resumen",      view: "resumen",       id: "bn-resumen" },
   { icon: <ArrowLeftRight size={22} strokeWidth={1.8} />,  iconActive: <ArrowLeftRight size={22} strokeWidth={2.5} />,  label: "Movimientos",  view: "movimientos",   id: "bn-mov"     },
   { icon: <HandCoins size={22} strokeWidth={1.8} />,       iconActive: <HandCoins size={22} strokeWidth={2.5} />,       label: "Deudas",       view: "deudas",        id: "bn-deudas"  },
-  { icon: <Bot size={22} strokeWidth={1.8} />,             iconActive: <Bot size={22} strokeWidth={2.5} />,             label: "IA",           view: "asistente",     id: "bn-ia"      },
+  { icon: <ReceiptText size={22} strokeWidth={1.8} />,     iconActive: <ReceiptText size={22} strokeWidth={2.5} />,     label: "Recibos",      view: "recibos",       id: "bn-recibos" },
 ];
 
 export default function BottomNav() {

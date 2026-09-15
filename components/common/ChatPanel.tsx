@@ -38,9 +38,8 @@ const SUGGESTIONS = [
 ];
 
 /**
- * El chat vive aquí y no en la vista para que la burbuja flotante y la
- * pantalla completa compartan la misma conversación: lo que preguntes en la
- * burbuja sigue ahí al abrir el Asistente completo.
+ * El chat de la burbuja flotante. La conversación vive en un store propio para
+ * que no se pierda al cerrar la burbuja o cambiar de pantalla.
  */
 export default function ChatPanel({ embedded = false }: { embedded?: boolean }) {
   const activeMonth = useDashboardStore((s) => s.activeMonth);

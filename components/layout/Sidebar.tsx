@@ -1,6 +1,6 @@
 "use client";
 
-import { LayoutDashboard, ArrowLeftRight, Target, Settings, Bot, HandCoins, ReceiptText } from "lucide-react";
+import { LayoutDashboard, ArrowLeftRight, Target, Settings, HandCoins, ReceiptText } from "lucide-react";
 import { useDashboardStore } from "@/store/dashboardStore";
 import type { ViewType } from "@/types";
 import CategoryIcon from "@/components/common/CategoryIcon";
@@ -40,7 +40,6 @@ export default function Sidebar() {
       <SidebarItem icon={<ArrowLeftRight size={16} />} label="Movimientos" active={view === "movimientos"} onClick={() => setView("movimientos")} />
       <SidebarItem icon={<Target size={16} />} label="Metas" active={view === "metas"} onClick={() => setView("metas")} />
       <SidebarItem icon={<HandCoins size={16} />} label="Deudas" active={view === "deudas"} onClick={() => setView("deudas")} />
-      <SidebarItem icon={<Bot size={16} />} label="Asistente IA" active={view === "asistente"} onClick={() => setView("asistente")} />
       <SidebarItem icon={<ReceiptText size={16} />} label="Recibos" active={view === "recibos"} onClick={() => setView("recibos")} />
       <SidebarItem icon={<Settings size={16} />} label="Configuración" active={view === "configuracion" || view === "categorias-admin"} onClick={() => setView("configuracion")} />
 
