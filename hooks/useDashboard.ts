@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useDashboardStore } from "@/store/dashboardStore";
 import { currentMonth } from "@/lib/utils";
 import { logout } from "@/lib/clientAuth";
@@ -22,7 +22,16 @@ export function useDashboard() {
   const { refresh, activeMonth, locked } = useDashboardStore();
 
   // Recarga cuando cambia el mes seleccionado o al desbloquear
+  const primera = useRef(true);
   useEffect(() => {
+    const primeraVez = primera.current;
+    primera.current = false;
+
+    // Si los datos del mes ya vinieron en el HTML, pedirlos otra vez nada mas
+    // arrancar es un viaje de red de mas. El sondeo de 60s los refresca igual.
+    const { data } = useDashboardStore.getState();
+    if (primeraVez && !locked && data?.current_month === activeMonth) return;
+
     refresh();
   }, [activeMonth, locked]);
 

@@ -11,6 +11,8 @@ import { useDashboard, markActive } from "@/hooks/useDashboard";
 import { isUnlockedThisLaunch, logout, markUnlocked } from "@/lib/clientAuth";
 import { useDashboardStore } from "@/store/dashboardStore";
 import { useReceiptStore } from "@/store/receiptStore";
+import { writeCache } from "@/lib/dashboardCache";
+import type { DashboardData } from "@/types";
 
 import ResumenView from "@/views/ResumenView";
 
@@ -46,9 +48,11 @@ interface Props {
   userEmail: string;
   hasPasskey: boolean;
   initiallyLocked: boolean;
+  /** Datos del mes que ya vinieron en el HTML (null si esta bloqueada). */
+  initialData: DashboardData | null;
 }
 
-export default function DashboardShell({ userEmail, hasPasskey, initiallyLocked }: Props) {
+export default function DashboardShell({ userEmail, hasPasskey, initiallyLocked, initialData }: Props) {
   // Estado de sesión cargado antes del primer render: la caché local se lee
   // con el email correcto y la app bloqueada nunca llega a mostrar datos.
   // Solo en el navegador: en el servidor el store es compartido entre usuarios.
@@ -60,6 +64,24 @@ export default function DashboardShell({ userEmail, hasPasskey, initiallyLocked 
     if (!locked) markUnlocked();
     useDashboardStore.setState({ userEmail, hasPasskey, locked });
   });
+
+  /*
+   * Los datos que vinieron en el HTML se siembran en cuanto hidrata.
+   *
+   * En un efecto y no durante el render: el servidor pinta el splash con el
+   * store vacio, asi que sembrarlos antes daria un desajuste de hidratacion.
+   * Igual se ahorra el viaje de red entero, que es lo que costaba.
+   */
+  useEffect(() => {
+    if (!initialData) return;
+    const { data, activeMonth } = useDashboardStore.getState();
+    if (!data && initialData.current_month === activeMonth) {
+      useDashboardStore.setState({ data: initialData, loading: false });
+      // Sin esto la copia del telefono no se refresca al arrancar, y es la que
+      // pinta al desbloquear con Face ID y cuando no hay red.
+      writeCache(userEmail, activeMonth, initialData);
+    }
+  }, [initialData, userEmail]);
 
   // Hasta hidratar se usa el valor del servidor, así el HTML y la hidratación coinciden
   const mounted = useSyncExternalStore(noopSubscribe, () => true, () => false);
