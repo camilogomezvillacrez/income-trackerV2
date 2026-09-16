@@ -47,10 +47,10 @@ export default function DonutChart() {
         </Pie>
         <Tooltip
           formatter={(v) => [fmt(Number(v ?? 0))]}
-          contentStyle={{ fontSize: 11, fontFamily: "Inter", borderRadius: 8, border: "1px solid #E2E4E9" }}
+          contentStyle={{ fontSize: 11, fontFamily: "var(--font-sans)", borderRadius: 8, border: "1px solid #E2E4E9" }}
         />
         <Legend
-          wrapperStyle={{ fontSize: 9, fontFamily: "Inter", paddingTop: "4px" }}
+          wrapperStyle={{ fontSize: 9, fontFamily: "var(--font-sans)", paddingTop: "4px" }}
           iconSize={8}
           iconType="circle"
         />

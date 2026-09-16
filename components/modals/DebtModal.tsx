@@ -3,7 +3,8 @@
 import { useState } from "react";
 import ModalBase from "./ModalBase";
 import { useDashboardStore, useToastStore } from "@/store/dashboardStore";
-import { todayDate } from "@/lib/utils";
+import { todayDate, fmtMiles, parseMiles } from "@/lib/utils";
+import MoneyInput from "@/components/common/MoneyInput";
 
 const inp: React.CSSProperties = {
   width: "100%",
@@ -36,7 +37,7 @@ export default function DebtModal() {
 
   const [type, setType] = useState<"debo" | "me_deben">(editing?.type ?? "debo");
   const [person, setPerson] = useState(editing?.person ?? "");
-  const [amount, setAmount] = useState(editing ? String(editing.amount) : "");
+  const [amount, setAmount] = useState(editing ? fmtMiles(editing.amount) : "");
   const [description, setDescription] = useState(editing?.description ?? "");
   const [date, setDate] = useState(editing?.date ?? todayDate());
   const [dueDate, setDueDate] = useState(editing?.due_date ?? "");
@@ -48,7 +49,7 @@ export default function DebtModal() {
   const personas = Array.from(new Set((data?.debts ?? []).map((d) => d.person))).sort();
 
   async function submit() {
-    const monto = parseFloat(amount);
+    const monto = parseMiles(amount);
     if (!person.trim()) { setError("Escribe el nombre de la persona"); return; }
     if (!monto || monto <= 0) { setError("El monto debe ser mayor a cero"); return; }
 
@@ -62,7 +63,7 @@ export default function DebtModal() {
       description: description.trim() || null,
       date,
       due_date: dueDate || null,
-      ...(editing ? {} : { paid: parseFloat(paid) || 0 }),
+      ...(editing ? {} : { paid: parseMiles(paid) }),
     };
 
     const res = await fetch(editing ? `/api/debt/${editing.id}` : "/api/debt", {
@@ -123,26 +124,12 @@ export default function DebtModal() {
       </datalist>
 
       <label style={label}>Monto total</label>
-      <input
-        type="number"
-        inputMode="decimal"
-        value={amount}
-        onChange={(e) => setAmount(e.target.value)}
-        style={inp}
-        placeholder="0"
-      />
+      <MoneyInput value={amount} onChange={setAmount} style={inp} placeholder="0" />
 
       {!editing && (
         <>
           <label style={label}>Ya abonado (opcional)</label>
-          <input
-            type="number"
-            inputMode="decimal"
-            value={paid}
-            onChange={(e) => setPaid(e.target.value)}
-            style={inp}
-            placeholder="0"
-          />
+          <MoneyInput value={paid} onChange={setPaid} style={inp} placeholder="0" />
         </>
       )}
 

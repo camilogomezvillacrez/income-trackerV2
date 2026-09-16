@@ -6,7 +6,8 @@ import { useDashboardStore, useToastStore } from "@/store/dashboardStore";
 import { PAYMENT_METHODS, PAYMENT_META, type PaymentMethod } from "@/constants/categories";
 import { CategoryGrid, SubcatGrid } from "@/components/categories/CategoryGrids";
 import { categoriesOf, findCategory } from "@/lib/categoryMeta";
-import { todayDate } from "@/lib/utils";
+import { todayDate, parseMiles } from "@/lib/utils";
+import MoneyInput from "@/components/common/MoneyInput";
 import type { MovementType } from "@/types";
 
 export default function RegisterModal() {
@@ -36,7 +37,7 @@ export default function RegisterModal() {
     if (!amount) { alert("Ingresa un monto"); return; }
     if (!cat) { alert("Selecciona una categoría"); return; }
     const url = tipo === "ingreso" ? "/api/income" : "/api/expense";
-    const payload: Record<string, unknown> = { amount: parseFloat(amount), category: cat, subcategory: subcat, note, date };
+    const payload: Record<string, unknown> = { amount: parseMiles(amount), category: cat, subcategory: subcat, note, date };
     if (tipo === "gasto") payload.payment_method = pm;
     await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
     closeModal();
@@ -92,7 +93,7 @@ export default function RegisterModal() {
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "10px" }}>
         <div>
           <label style={labelStyle}>Monto</label>
-          <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="Ej: 50000" style={inputStyle} />
+          <MoneyInput value={amount} onChange={setAmount} placeholder="Ej: 50.000" style={inputStyle} />
         </div>
         <div>
           <label style={labelStyle}>Fecha</label>

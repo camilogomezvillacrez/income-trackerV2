@@ -5,6 +5,8 @@ import ModalBase from "./ModalBase";
 import { useDashboardStore, useToastStore } from "@/store/dashboardStore";
 import { PAYMENT_METHODS } from "@/constants/categories";
 import { categoriesOf, findCategory } from "@/lib/categoryMeta";
+import MoneyInput from "@/components/common/MoneyInput";
+import { fmtMiles, parseMiles } from "@/lib/utils";
 
 const inp: React.CSSProperties = {
   width: "100%",
@@ -37,7 +39,7 @@ export default function FixedModal() {
   const editing = data?.fixed_expenses.find((f) => f.id === editDebtId) ?? null;
 
   const [name, setName] = useState(editing?.name ?? "");
-  const [amount, setAmount] = useState(editing ? String(editing.amount) : "");
+  const [amount, setAmount] = useState(editing ? fmtMiles(editing.amount) : "");
   const [category, setCategory] = useState(editing?.category ?? categoriesOf(data, "gasto")[0]?.name ?? "General");
   const [subcategory, setSubcategory] = useState(editing?.subcategory ?? "");
   const [day, setDay] = useState(String(editing?.day_of_month ?? 1));
@@ -48,7 +50,7 @@ export default function FixedModal() {
   const subs = findCategory(data, category, "gasto").subs.map((s) => s.name);
 
   async function submit() {
-    const monto = parseFloat(amount);
+    const monto = parseMiles(amount);
     if (!name.trim()) { setError("Ponle un nombre (ej: Arriendo)"); return; }
     if (!monto || monto <= 0) { setError("El monto debe ser mayor a cero"); return; }
 
@@ -100,14 +102,7 @@ export default function FixedModal() {
       <div style={{ display: "flex", gap: "10px" }}>
         <div style={{ flex: 2 }}>
           <label style={label}>Monto habitual</label>
-          <input
-            type="number"
-            inputMode="decimal"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            style={inp}
-            placeholder="0"
-          />
+          <MoneyInput value={amount} onChange={setAmount} style={inp} placeholder="0" />
         </div>
         <div style={{ flex: 1 }}>
           <label style={label}>Día del mes</label>

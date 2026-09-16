@@ -6,6 +6,8 @@ import { useDashboardStore, useToastStore } from "@/store/dashboardStore";
 import { PAYMENT_METHODS, PAYMENT_META, type PaymentMethod } from "@/constants/categories";
 import { CategoryGrid, SubcatGrid } from "@/components/categories/CategoryGrids";
 import { categoriesOf, findCategory } from "@/lib/categoryMeta";
+import MoneyInput from "@/components/common/MoneyInput";
+import { fmtMiles, parseMiles } from "@/lib/utils";
 import type { MovementType } from "@/types";
 
 const labelStyle: React.CSSProperties = { display: "block", fontSize: "10px", fontWeight: 600, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "5px" };
@@ -23,7 +25,7 @@ export default function EditModal() {
 
   const [cat, setCat]     = useState(movement?.category ?? null);
   const [subcat, setSubcat] = useState(movement?.subcategory ?? null);
-  const [amount, setAmount] = useState(String(movement?.amount ?? ""));
+  const [amount, setAmount] = useState(fmtMiles(movement?.amount ?? ""));
   const [date, setDate]   = useState(movement?.date ?? "");
   const [note, setNote]   = useState(movement?.note ?? "");
   const [pm, setPm]       = useState<PaymentMethod>((movement?.payment_method as PaymentMethod) ?? "Efectivo");
@@ -32,7 +34,7 @@ export default function EditModal() {
     if (movement) {
       setCat(movement.category);
       setSubcat(movement.subcategory);
-      setAmount(String(movement.amount));
+      setAmount(fmtMiles(movement.amount));
       setDate(movement.date);
       setNote(movement.note ?? "");
       setPm((movement.payment_method as PaymentMethod) ?? "Efectivo");
@@ -49,7 +51,7 @@ export default function EditModal() {
     if (!amount) { alert("Ingresa un monto"); return; }
     if (!cat) { alert("Selecciona una categoría"); return; }
     const url = tipo === "ingreso" ? `/api/income/${editTarget!.id}` : `/api/expense/${editTarget!.id}`;
-    const payload: Record<string, unknown> = { amount: parseFloat(amount), category: cat, subcategory: subcat, note, date };
+    const payload: Record<string, unknown> = { amount: parseMiles(amount), category: cat, subcategory: subcat, note, date };
     if (tipo === "gasto") payload.payment_method = pm;
     await fetch(url, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
     closeModal();
@@ -66,7 +68,7 @@ export default function EditModal() {
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "10px" }}>
         <div>
           <label style={labelStyle}>Monto</label>
-          <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} style={inputStyle} />
+          <MoneyInput value={amount} onChange={setAmount} style={inputStyle} />
         </div>
         <div>
           <label style={labelStyle}>Fecha</label>

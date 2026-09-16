@@ -7,7 +7,8 @@ import { useReceiptStore } from "@/store/receiptStore";
 import { PAYMENT_METHODS, PAYMENT_META, type PaymentMethod } from "@/constants/categories";
 import { CategoryGrid, SubcatGrid } from "@/components/categories/CategoryGrids";
 import { categoriesOf, findCategory } from "@/lib/categoryMeta";
-import { todayDate } from "@/lib/utils";
+import { todayDate, fmtMiles, parseMiles } from "@/lib/utils";
+import MoneyInput from "@/components/common/MoneyInput";
 
 const CONFIANZA_LABEL = {
   alta: { text: "Lectura clara", bg: "#ECFDF5", color: "#047857" },
@@ -28,7 +29,7 @@ export default function ReceiptConfirmModal() {
 
   const [proveedor, setProveedor] = useState(f?.proveedor ?? "");
   const [nit, setNit] = useState(f?.nit ?? "");
-  const [valor, setValor] = useState(f?.valor != null ? String(f.valor) : "");
+  const [valor, setValor] = useState(f?.valor != null ? fmtMiles(f.valor) : "");
   const [fecha, setFecha] = useState(f?.fecha ?? todayDate());
   const [correo, setCorreo] = useState(f?.correo ?? "");
   const [telefono, setTelefono] = useState(f?.telefono ?? "");
@@ -47,7 +48,7 @@ export default function ReceiptConfirmModal() {
   }
 
   async function save() {
-    if (!valor || Number(valor) <= 0) { toast("Ingresa el valor del recibo", "err"); return; }
+    if (parseMiles(valor) <= 0) { toast("Ingresa el valor del recibo", "err"); return; }
     if (!cat) { toast("Elige una categoría", "err"); return; }
 
     setSaving(true);
@@ -58,7 +59,7 @@ export default function ReceiptConfirmModal() {
         body: JSON.stringify({
           pathname: pending!.pathname,
           proveedor, nit, correo, telefono, nota, fecha,
-          valor: Number(valor),
+          valor: parseMiles(valor),
           category: cat,
           subcategory: subcat,
           payment_method: pm,
@@ -114,7 +115,7 @@ export default function ReceiptConfirmModal() {
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "10px" }}>
-          <Field label="Valor total" value={valor} onChange={setValor} type="number" placeholder="45000" />
+          <Field label="Valor total" value={valor} onChange={setValor} money placeholder="45.000" />
           <Field label="Fecha" value={fecha} onChange={setFecha} type="date" />
         </div>
 
@@ -187,23 +188,29 @@ export default function ReceiptConfirmModal() {
   );
 }
 
-function Field({ label, value, onChange, type = "text", placeholder }: {
+function Field({ label, value, onChange, type = "text", money, placeholder }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   type?: string;
+  /** Campo de plata: puntos de miles mientras se escribe */
+  money?: boolean;
   placeholder?: string;
 }) {
   return (
     <div>
       <label style={labelStyle}>{label}</label>
-      <input
-        type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        style={inputStyle}
-      />
+      {money ? (
+        <MoneyInput value={value} onChange={onChange} placeholder={placeholder} style={inputStyle} />
+      ) : (
+        <input
+          type={type}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          style={inputStyle}
+        />
+      )}
     </div>
   );
 }

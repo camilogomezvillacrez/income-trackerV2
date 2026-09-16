@@ -3,6 +3,8 @@
 import { useState } from "react";
 import ModalBase from "./ModalBase";
 import { useDashboardStore, useToastStore } from "@/store/dashboardStore";
+import MoneyInput from "@/components/common/MoneyInput";
+import { parseMiles } from "@/lib/utils";
 
 export default function GoalModal() {
   const { closeModal, refresh } = useDashboardStore();
@@ -31,7 +33,7 @@ export default function GoalModal() {
     await fetch("/api/goal", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, target: parseFloat(target), saved: parseFloat(saved) || 0, emoji }),
+      body: JSON.stringify({ name, target: parseMiles(target), saved: parseMiles(saved), emoji }),
     });
     closeModal();
     toast("🎯 Meta creada");
@@ -44,8 +46,8 @@ export default function GoalModal() {
         <input value={emoji} onChange={(e) => setEmoji(e.target.value)} style={{ ...inp(), width: "60px", flexShrink: 0 }} placeholder="🎯" />
         <input value={name} onChange={(e) => setName(e.target.value)} style={inp()} placeholder="Nombre de la meta" />
       </div>
-      <input type="number" value={target} onChange={(e) => setTarget(e.target.value)} style={inp()} placeholder="Monto objetivo" />
-      <input type="number" value={saved} onChange={(e) => setSaved(e.target.value)} style={inp()} placeholder="Ya tengo ahorrado (opcional)" />
+      <MoneyInput value={target} onChange={setTarget} style={inp()} placeholder="Monto objetivo" />
+      <MoneyInput value={saved} onChange={setSaved} style={inp()} placeholder="Ya tengo ahorrado (opcional)" />
       <div style={{ display: "flex", gap: "8px", marginTop: "8px" }}>
         <button
           onClick={closeModal}

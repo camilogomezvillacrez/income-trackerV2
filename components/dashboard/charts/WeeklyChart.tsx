@@ -22,19 +22,19 @@ export default function WeeklyChart() {
         <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,.04)" vertical={false} />
         <XAxis
           dataKey="day"
-          tick={{ fontSize: 9, fill: "#4B5563", fontFamily: "Inter" }}
+          tick={{ fontSize: 9, fill: "#4B5563", fontFamily: "var(--font-sans)" }}
           axisLine={false}
           tickLine={false}
         />
         <YAxis
-          tick={{ fontSize: 9, fill: "#4B5563", fontFamily: "Inter" }}
+          tick={{ fontSize: 9, fill: "#4B5563", fontFamily: "var(--font-sans)" }}
           axisLine={false}
           tickLine={false}
           tickFormatter={(v) => v ? "$" + Math.round(v / 1000) + "k" : ""}
         />
         <Tooltip
           formatter={(v) => [fmt(Number(v ?? 0)), "Gasto"]}
-          contentStyle={{ fontSize: 11, fontFamily: "Inter", borderRadius: 8, border: "1px solid #E2E4E9" }}
+          contentStyle={{ fontSize: 11, fontFamily: "var(--font-sans)", borderRadius: 8, border: "1px solid #E2E4E9" }}
         />
         <Bar dataKey="total" radius={[4, 4, 0, 0]}>
           {chartData.map((entry, i) => (

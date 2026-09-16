@@ -3,7 +3,8 @@
 import { useState } from "react";
 import ModalBase from "./ModalBase";
 import { useDashboardStore, useToastStore } from "@/store/dashboardStore";
-import { todayDate, fmt } from "@/lib/utils";
+import { todayDate, fmt, parseMiles } from "@/lib/utils";
+import MoneyInput from "@/components/common/MoneyInput";
 
 export default function DebtAbonoModal() {
   const { data, debtTarget, closeModal, refresh } = useDashboardStore();
@@ -24,7 +25,7 @@ export default function DebtAbonoModal() {
   async function enviar(saldar: boolean) {
     if (!debt) return;
     if (!saldar) {
-      const monto = parseFloat(amount);
+      const monto = parseMiles(amount);
       if (!monto || monto <= 0) { setError("Ingresa un monto mayor a cero"); return; }
     }
 
@@ -35,7 +36,7 @@ export default function DebtAbonoModal() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(
-        saldar ? { saldar: true, date } : { amount: parseFloat(amount), date }
+        saldar ? { saldar: true, date } : { amount: parseMiles(amount), date }
       ),
     });
 
@@ -94,11 +95,9 @@ export default function DebtAbonoModal() {
       </div>
 
       <label style={label}>Monto del abono</label>
-      <input
-        type="number"
-        inputMode="decimal"
+      <MoneyInput
         value={amount}
-        onChange={(e) => setAmount(e.target.value)}
+        onChange={setAmount}
         style={inp}
         placeholder={`Máximo ${fmt(debt.pending)}`}
         autoFocus

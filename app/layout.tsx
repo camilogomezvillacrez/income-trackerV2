@@ -1,11 +1,12 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { IBM_Plex_Sans } from "next/font/google";
 import "./globals.css";
 import ServiceWorker from "@/components/common/ServiceWorker";
 
-const inter = Inter({
+// Instanciada aqui y solo aqui: hacerlo en otro componente duplica la descarga.
+const plexSans = IBM_Plex_Sans({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600"],
+  weight: ["400", "500", "600"],
   variable: "--font-sans",
   display: "swap",
 });
@@ -30,7 +31,7 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="es" className={`${inter.variable} h-full`}>
+    <html lang="es" className={`${plexSans.variable} h-full`}>
       <body className="min-h-full flex flex-col antialiased">
         {children}
         <ServiceWorker />

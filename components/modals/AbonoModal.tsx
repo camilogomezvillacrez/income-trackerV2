@@ -3,6 +3,8 @@
 import { useState } from "react";
 import ModalBase from "./ModalBase";
 import { useDashboardStore, useToastStore } from "@/store/dashboardStore";
+import MoneyInput from "@/components/common/MoneyInput";
+import { parseMiles } from "@/lib/utils";
 
 export default function AbonoModal() {
   const { abonoTarget, closeModal, refresh } = useDashboardStore();
@@ -14,7 +16,7 @@ export default function AbonoModal() {
     await fetch(`/api/goal/${abonoTarget.goalId}/abono`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ amount: parseFloat(amount) }),
+      body: JSON.stringify({ amount: parseMiles(amount) }),
     });
     closeModal();
     toast("💰 Abono registrado");
@@ -36,7 +38,7 @@ export default function AbonoModal() {
 
   return (
     <ModalBase title="Abonar a meta">
-      <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} style={inp} placeholder="Monto a abonar" autoFocus />
+      <MoneyInput value={amount} onChange={setAmount} style={inp} placeholder="Monto a abonar" autoFocus />
       <div style={{ display: "flex", gap: "8px", marginTop: "8px" }}>
         <button onClick={closeModal} style={{ flex: 1, background: "none", color: "var(--sub)", border: "1px solid var(--border)", borderRadius: "8px", padding: "10px", fontSize: "13px", cursor: "pointer", fontFamily: "var(--font-sans)" }}>
           Cancelar

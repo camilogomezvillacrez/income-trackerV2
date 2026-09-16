@@ -1,35 +1,37 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useKeyboardOpen } from "./useKeyboardOpen";
 
 export interface KeyboardViewport {
-  /** offsetTop del visualViewport: cuánto ha desplazado Safari la página */
+  /** offsetTop del visualViewport: cuanto ha desplazado Safari la pagina */
   top: number;
   /** alto visible de verdad, ya descontado el teclado */
   height: number;
 }
 
 /**
- * En iOS el teclado no encoge el viewport de layout: un overlay `position: fixed`
- * sigue midiendo la pantalla completa y Safari desplaza el visual viewport, así
- * que el panel se sale por arriba y deja un hueco por debajo.
+ * Medidas del area visible mientras se escribe, para los overlays que ocupan
+ * toda la pantalla (modales, panel del chat).
  *
- * Devuelve las medidas del área realmente visible mientras el teclado está
- * abierto en móvil, y `null` el resto del tiempo (ahí el CSS normal ya sirve).
+ * En el navegador de iOS el teclado no encoge el viewport de layout: un overlay
+ * position:fixed sigue midiendo la pantalla completa y Safari desplaza el visual
+ * viewport, asi que la cabecera se sale por arriba y queda un hueco por debajo.
+ *
+ * Quien decide si el teclado esta abierto es el foco (ver useKeyboardOpen);
+ * visualViewport solo se usa para medir, nunca para detectar.
  */
 export function useKeyboardViewport(active: boolean): KeyboardViewport | null {
+  const typing = useKeyboardOpen();
   const [kb, setKb] = useState<KeyboardViewport | null>(null);
+  const on = active && typing;
 
   useEffect(() => {
-    if (!active) { setKb(null); return; }
+    if (!on) return;
     const vv = typeof window !== "undefined" ? window.visualViewport : null;
     if (!vv) return;
 
-    const update = () => {
-      const mobile = window.innerWidth <= 768;
-      const hidden = window.innerHeight - vv.height; // alto del teclado
-      setKb(mobile && hidden > 100 ? { top: vv.offsetTop, height: vv.height } : null);
-    };
+    const update = () => setKb({ top: vv.offsetTop, height: vv.height });
 
     update();
     vv.addEventListener("resize", update);
@@ -38,7 +40,9 @@ export function useKeyboardViewport(active: boolean): KeyboardViewport | null {
       vv.removeEventListener("resize", update);
       vv.removeEventListener("scroll", update);
     };
-  }, [active]);
+  }, [on]);
 
-  return kb;
+  // Derivado en vez de reseteado dentro del efecto: al volver a abrirse, el
+  // update() inmediato refresca la medida.
+  return on ? kb : null;
 }

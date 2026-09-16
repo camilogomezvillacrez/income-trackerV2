@@ -31,22 +31,22 @@ export default function ComboChart() {
         <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,.04)" vertical={false} />
         <XAxis
           dataKey="month"
-          tick={{ fontSize: 10, fill: "#4B5563", fontFamily: "Inter" }}
+          tick={{ fontSize: 10, fill: "#4B5563", fontFamily: "var(--font-sans)" }}
           axisLine={false}
           tickLine={false}
         />
         <YAxis
-          tick={{ fontSize: 10, fill: "#4B5563", fontFamily: "Inter" }}
+          tick={{ fontSize: 10, fill: "#4B5563", fontFamily: "var(--font-sans)" }}
           axisLine={false}
           tickLine={false}
           tickFormatter={(v) => "$" + Math.round(v / 1000) + "k"}
         />
         <Tooltip
           formatter={(v, name) => [fmt(Number(v ?? 0)), String(name)]}
-          contentStyle={{ fontSize: 11, fontFamily: "Inter", borderRadius: 8, border: "1px solid #E2E4E9" }}
+          contentStyle={{ fontSize: 11, fontFamily: "var(--font-sans)", borderRadius: 8, border: "1px solid #E2E4E9" }}
         />
         <Legend
-          wrapperStyle={{ fontSize: 10, fontFamily: "Inter" }}
+          wrapperStyle={{ fontSize: 10, fontFamily: "var(--font-sans)" }}
           iconSize={10}
         />
         <Bar dataKey="Ingresos" fill="rgba(59,109,17,.18)" stroke="#3B6D11" strokeWidth={2} radius={[4,4,0,0]} />

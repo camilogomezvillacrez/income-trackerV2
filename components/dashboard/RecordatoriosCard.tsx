@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { Bell, CalendarClock } from "lucide-react";
 import { useDashboardStore, useToastStore } from "@/store/dashboardStore";
-import { fmt, monthLabel } from "@/lib/utils";
+import { fmt, monthLabel, parseMiles } from "@/lib/utils";
+import MoneyInput from "@/components/common/MoneyInput";
 
 /** Avisa de deudas próximas a vencer y de los gastos fijos del mes. */
 export default function RecordatoriosCard() {
@@ -49,7 +50,7 @@ export default function RecordatoriosCard() {
         month: activeMonth,
         items: marcados.map((f) => ({
           id: f.id,
-          amount: parseFloat(montos[f.id]) || f.amount,
+          amount: parseMiles(montos[f.id]) || f.amount,
         })),
       }),
     });
@@ -71,7 +72,7 @@ export default function RecordatoriosCard() {
   }
 
   const total = marcados.reduce(
-    (a, f) => a + (parseFloat(montos[f.id]) || f.amount),
+    (a, f) => a + (parseMiles(montos[f.id]) || f.amount),
     0
   );
 
@@ -185,11 +186,9 @@ export default function RecordatoriosCard() {
                   {f.category} · día {f.day_of_month}
                 </div>
               </div>
-              <input
-                type="number"
-                inputMode="decimal"
+              <MoneyInput
                 value={montos[f.id] ?? ""}
-                onChange={(e) => setMontos((m) => ({ ...m, [f.id]: e.target.value }))}
+                onChange={(v) => setMontos((m) => ({ ...m, [f.id]: v }))}
                 style={{
                   width: "108px",
                   background: "var(--bg)",
