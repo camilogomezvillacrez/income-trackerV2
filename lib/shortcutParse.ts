@@ -29,28 +29,21 @@ export function parseAmount(raw: unknown): number | null {
 
 type Rule = [RegExp, string, string];
 
-/** Comercios frecuentes en Colombia → [categoría, subcategoría]. El orden importa. */
+/** Comercios frecuentes en Colombia -> categoria. Sin subcategoria: la categoria ya es especifica. */
 const RULES: Rule[] = [
-  [/cruz verde|farmatodo|drogueri|farmacia|locatel|pasteur/, "Salud", "Farmacia"],
-  [/smart ?fit|bodytech|stark|\bgym\b/, "Salud", "Gym"],
-  [/rappi|ifood|didi ?food|merqueo|domicilio/, "Alimentación", "Domicilio"],
-  [/\buber\b|didi|cabify|indrive|\bbeat\b/, "Transporte", "Uber"],
-  [/\btaxi/, "Transporte", "Taxi"],
-  [/terpel|primax|\besso\b|\bmobil\b|texaco|biomax|zeuss|petrobras|gasolin|estacion de servicio|\beds\b/, "Transporte", "Gasolina"],
-  [/peaje|flypass/, "Transporte", "Peaje"],
-  [/transmilenio|tu ?llave/, "Transporte", "TransMilenio"],
-  [/parqueadero|parking/, "Gastos hormiga", "Parqueadero"],
-  [/juan valdez|starbucks|tostao|\boma\b|dunkin|\bcafe\b|cafeteria/, "Gastos hormiga", "Café"],
-  [/\bexito\b|carulla|jumbo|\bmetro\b|olimpica|\bd1\b|\bara\b|justo ?& ?bueno|isimo|pricesmart|makro|surtimax|colsubsidio|supermercado|minimercado|\boxxo\b|mercado/, "Alimentación", "Mercado"],
-  [/mcdonald|burger|\bkfc\b|frisby|crepes|el corral|presto|domino|papa john|subway|restaurante|pizza|sushi|\bwok\b|andres carne|hamburgues|asadero|panaderia/, "Alimentación", "Restaurante"],
-  [/netflix|disney|\bhbo\b|max\.com|prime ?video|paramount|crunchyroll|vix/, "Suscripciones", "Streaming"],
-  [/spotify|apple music|deezer|youtube music|youtube premium/, "Suscripciones", "Música"],
-  [/apple\.com|icloud|google one|microsoft|adobe|openai|chatgpt|anthropic|claude|notion|github|canva/, "Suscripciones", "Software"],
-  [/playstation|xbox|steam|nintendo/, "Entretenimiento", "Videojuegos"],
-  [/cinemark|cinepolis|procinal|royal films|\bcine\b/, "Entretenimiento", "Cine"],
-  [/\bzara\b|h&m|bershka|pull ?& ?bear|arturo calle|studio f|koaj|adidas|\bnike\b|mango|tennis|offcorss|stradivarius/, "Ropa", "Ropa"],
-  [/barberia|peluqueria|salon de belleza/, "Cuidado personal", "Barbería"],
-  [/\benel\b|codensa|\bepm\b|vanti|acueducto|gas natural/, "Vivienda", "Servicios"],
+  [/cruz verde|farmatodo|drogueri|farmacia|locatel|pasteur/, "Salud", ""],
+  [/smart ?fit|bodytech|stark|\bgym\b/, "GYM", ""],
+  [/rappi|ifood|didi ?food|merqueo|domicilio/, "Domicilios", ""],
+  [/\buber\b|didi|cabify|indrive|\bbeat\b|\btaxi|peaje|flypass|transmilenio|tu ?llave|parqueadero|parking/, "Transporte", ""],
+  [/terpel|primax|\besso\b|\bmobil\b|texaco|biomax|zeuss|petrobras|gasolin|estacion de servicio|\beds\b/, "Gasolina", ""],
+  [/juan valdez|starbucks|tostao|\boma\b|dunkin|\bcafe\b|cafeteria/, "Restaurantes", ""],
+  [/\bexito\b|carulla|jumbo|\bmetro\b|olimpica|\bd1\b|\bara\b|justo ?& ?bueno|isimo|pricesmart|makro|surtimax|colsubsidio|supermercado|minimercado|\boxxo\b|mercado/, "Mercado", ""],
+  [/mcdonald|burger|\bkfc\b|frisby|crepes|el corral|presto|domino|papa john|subway|restaurante|pizza|sushi|\bwok\b|andres carne|hamburgues|asadero|panaderia/, "Restaurantes", ""],
+  [/netflix|disney|\bhbo\b|max\.com|prime ?video|paramount|crunchyroll|vix|spotify|apple music|deezer|youtube music|youtube premium|apple\.com|icloud|google one|microsoft|adobe|openai|chatgpt|anthropic|claude|notion|github|canva/, "Suscripciones", ""],
+  [/playstation|xbox|steam|nintendo|cinemark|cinepolis|procinal|royal films|\bcine\b/, "Entretenimiento", ""],
+  [/\bzara\b|h&m|bershka|pull ?& ?bear|arturo calle|studio f|koaj|adidas|\bnike\b|mango|tennis|offcorss|stradivarius/, "Ropa", ""],
+  [/barberia|peluqueria|salon de belleza/, "Cuidado Personal", ""],
+  [/\benel\b|codensa|\bepm\b|vanti|acueducto|gas natural/, "Servicios", ""],
 ];
 
 const normalize = (s: string) =>
