@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { getAuthUser, unauthorized } from "@/lib/auth";
+import { checkLimit, AI_CHAT_LIMIT } from "@/lib/rateLimit";
 import { getDashboardData } from "@/lib/queries";
 import { fmt, currentMonth, monthLabel } from "@/lib/utils";
 
@@ -17,6 +18,16 @@ const MAX_MSG_LENGTH = 2000;
 export async function POST(req: NextRequest) {
   const user = await getAuthUser();
   if (!user) return unauthorized();
+
+  // Cada mensaje gasta saldo de la API key del servidor: se topa por usuario.
+  const limit = checkLimit(AI_CHAT_LIMIT, String(user.userId));
+  if (!limit.allowed) {
+    const mins = Math.ceil((limit.retryAfterMs ?? 0) / 60000);
+    return NextResponse.json(
+      { reply: `Llegaste al límite de mensajes por ahora, mano. Sigamos en ${mins} minutos.` },
+      { status: 429, headers: { "Retry-After": String(Math.ceil((limit.retryAfterMs ?? 0) / 1000)) } }
+    );
+  }
 
   const body = await req.json();
   const month: string =
@@ -144,8 +155,14 @@ Tono (importante):
   try {
     const message = await client.messages.create({
       model: "claude-opus-5",
-      max_tokens: 1024,
-      system,
+      // Opus 5 razona por defecto y ese razonamiento sale del mismo max_tokens:
+      // con 1024 la respuesta se cortaba a media frase. Holgura + esfuerzo bajo,
+      // que estas preguntas son simples y los datos ya vienen masticados.
+      max_tokens: 4096,
+      output_config: { effort: "low" },
+      // El bloque de datos es idéntico entre mensajes de una misma conversación:
+      // cacheado, releerlo cuesta ~10% en vez del precio completo cada vez.
+      system: [{ type: "text", text: system, cache_control: { type: "ephemeral" } }],
       messages: history,
     });
 

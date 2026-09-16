@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { getDb } from "@/lib/db";
 import { hashShortcutToken } from "@/lib/shortcutToken";
-import { checkLimit, SHORTCUT_LIMIT } from "@/lib/rateLimit";
+import { checkLimit, clientIp, SHORTCUT_LIMIT, SHORTCUT_IP_LIMIT } from "@/lib/rateLimit";
 import { sendPushToUser } from "@/lib/push";
 import { categorizeByRules, parseAmount, todayBogota } from "@/lib/shortcutParse";
 import { getCategories } from "@/lib/categories";
@@ -66,6 +66,16 @@ export async function POST(req: NextRequest) {
   const token = req.headers.get("authorization")?.replace(/^Bearer\s+/i, "").trim();
   if (!token) {
     return NextResponse.json({ error: "Falta el token" }, { status: 401 });
+  }
+
+  // Primero por IP: así un token inventado se corta sin gastar una lectura de Turso.
+  const ipLimit = checkLimit(SHORTCUT_IP_LIMIT, clientIp(req));
+  if (!ipLimit.allowed) {
+    const mins = Math.ceil((ipLimit.retryAfterMs ?? 0) / 60000);
+    return NextResponse.json(
+      { error: `Demasiadas peticiones. Intenta en ${mins} minutos.` },
+      { status: 429, headers: { "Retry-After": String(Math.ceil((ipLimit.retryAfterMs ?? 0) / 1000)) } }
+    );
   }
 
   const db = getDb();

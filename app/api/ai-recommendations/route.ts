@@ -1,10 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
+import { getAuthUser, unauthorized } from "@/lib/auth";
+import { checkLimit, AI_RECS_LIMIT } from "@/lib/rateLimit";
 import { fmt } from "@/lib/utils";
 
 const client = new Anthropic();
 
 export async function POST(req: NextRequest) {
+  const user = await getAuthUser();
+  if (!user) return unauthorized();
+
+  // Cada llamada gasta saldo de la API key del servidor: se topa por usuario.
+  const limit = checkLimit(AI_RECS_LIMIT, String(user.userId));
+  if (!limit.allowed) {
+    const mins = Math.ceil((limit.retryAfterMs ?? 0) / 60000);
+    return NextResponse.json(
+      { recommendations: [`Ya pediste varias veces el análisis IA. Vuelve a intentar en ${mins} minutos.`] },
+      { status: 429, headers: { "Retry-After": String(Math.ceil((limit.retryAfterMs ?? 0) / 1000)) } }
+    );
+  }
+
   const data = await req.json();
   const { month_inc, month_exp, balance, tasa_ahorro, by_category, goals } = data;
 

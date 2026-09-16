@@ -2,17 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { compareSync } from "bcryptjs";
 import { getSession } from "@/lib/auth";
 import { getDb } from "@/lib/db";
-import { checkRateLimit, resetRateLimit } from "@/lib/rateLimit";
+import { checkLimit, clientIp, resetLimit, LOGIN_LIMIT } from "@/lib/rateLimit";
 import { getCredentials, setPasskeyHint } from "@/lib/webauthn";
 
 export async function POST(req: NextRequest) {
   // ── Rate limiting por IP ────────────────────────────────────
-  const ip =
-    req.headers.get("x-forwarded-for")?.split(",")[0].trim() ??
-    req.headers.get("x-real-ip") ??
-    "unknown";
+  const ip = clientIp(req);
 
-  const limit = checkRateLimit(ip);
+  const limit = checkLimit(LOGIN_LIMIT, ip);
   if (!limit.allowed) {
     const mins = Math.ceil((limit.retryAfterMs ?? 0) / 60000);
     return NextResponse.json(
@@ -44,7 +41,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Login correcto → resetear contador
-  resetRateLimit(ip);
+  resetLimit(LOGIN_LIMIT, ip);
 
   const session = await getSession();
   session.userId       = Number(user!.id);

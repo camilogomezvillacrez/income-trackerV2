@@ -26,6 +26,7 @@ export default function AIRecommendations() {
           goals: data.goals,
         }),
       });
+      if (res.status === 401) { window.location.href = "/login"; return; }
       const json = await res.json();
       setRecs(json.recommendations ?? []);
     } catch {
