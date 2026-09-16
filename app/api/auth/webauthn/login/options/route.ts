@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateAuthenticationOptions } from "@simplewebauthn/server";
 import { getSession } from "@/lib/auth";
-import { PASSKEY_HINT_COOKIE, readPasskeyHint, relyingParty } from "@/lib/webauthn";
+import { PASSKEY_HINT_COOKIE, readPasskeyHint, relyingParty, rememberChallenge } from "@/lib/webauthn";
 
 /**
  * Ruta pública: entrar con Face ID sin sesión. Si la cookie de aviso trae los
@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
   });
 
   const session = await getSession();
-  session.challenge = options.challenge;
+  rememberChallenge(session, options.challenge);
   await session.save();
 
   return NextResponse.json(options);

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { ScanFace } from "lucide-react";
+import { ScanFace, AlertCircle } from "lucide-react";
 import { startAuthentication } from "@simplewebauthn/browser";
 import type { PublicKeyCredentialRequestOptionsJSON } from "@simplewebauthn/browser";
 
@@ -49,8 +49,12 @@ export default function LockScreen({ mode, email, onSuccess, onUsePassword }: Pr
   const options = useRef<PublicKeyCredentialRequestOptionsJSON | null>(null);
   // Cada intento tiene su número: solo el más reciente puede cambiar la pantalla
   const attemptRef = useRef(0);
+  // Hay un intento vivo. El botón sí puede reemplazarlo (por si se queda
+  // colgado); lo que no debe es lanzarse solo uno encima de otro.
+  const running = useRef(false);
   const [busy, setBusy]   = useState(false);
   const [error, setError] = useState("");
+  const [fallos, setFallos] = useState(0);
 
   /** diag: motivo del intento fallido anterior, para verlo en los logs del servidor. */
   async function fetchOptions(diag?: string): Promise<PublicKeyCredentialRequestOptionsJSON | null> {
@@ -69,6 +73,7 @@ export default function LockScreen({ mode, email, onSuccess, onUsePassword }: Pr
   async function unlock() {
     const attempt = ++attemptRef.current;
     const isCurrent = () => attempt === attemptRef.current;
+    running.current = true;
 
     if (!options.current) options.current = await fetchOptions();
     if (!options.current || !isCurrent()) return;
@@ -108,11 +113,14 @@ export default function LockScreen({ mode, email, onSuccess, onUsePassword }: Pr
     } catch (e) {
       // Un intento más nuevo ya tomó el control: este no toca la pantalla
       if (!isCurrent()) return;
-      setError(friendlyError(e));
+      const msg = friendlyError(e);
+      setError(msg);
+      // Los cancelados no cuentan: cerrar la hoja de iOS no es un fallo
+      if (msg) setFallos((n) => n + 1);
       const err = e as { name?: string; message?: string };
       options.current = await fetchOptions(`${diag ? diag + "|" : ""}fail:${err?.name}:${err?.message}`);
     } finally {
-      if (isCurrent()) setBusy(false);
+      if (isCurrent()) { setBusy(false); running.current = false; }
     }
   }
 
@@ -129,10 +137,17 @@ export default function LockScreen({ mode, email, onSuccess, onUsePassword }: Pr
     });
   }, []);
 
-  // Al volver de otra app iOS corta el intento pendiente: se lanza de nuevo
+  /*
+   * Al volver de otra app iOS corta el intento pendiente: se lanza de nuevo.
+   *
+   * Salvo que ya haya uno vivo. iOS oculta y vuelve a mostrar la pagina al
+   * abrir su propia hoja de Face ID, asi que esto se disparaba en mitad de un
+   * intento: el segundo pedia opciones nuevas, el servidor cambiaba el reto y
+   * la cara acababa firmando uno que ya no esperaba nadie.
+   */
   useEffect(() => {
     const onVisible = () => {
-      if (document.visibilityState === "visible" && prepared.current) unlock();
+      if (document.visibilityState === "visible" && prepared.current && !running.current) unlock();
     };
     document.addEventListener("visibilitychange", onVisible);
     return () => document.removeEventListener("visibilitychange", onVisible);
@@ -159,7 +174,22 @@ export default function LockScreen({ mode, email, onSuccess, onUsePassword }: Pr
           {busy ? "Verificando…" : "Desbloquear"}
         </button>
 
-        <p className="lock-error" aria-live="polite">{error}</p>
+        <div className="lock-error" role="status" aria-live="polite">
+          {error && (
+            <>
+              <p className="lock-error-msg">
+                <AlertCircle size={15} strokeWidth={2} aria-hidden />
+                <span>{error}</span>
+              </p>
+              {/* Al segundo intento, insistir con la cara ya no ayuda */}
+              {fallos >= 2 && (
+                <button onClick={onUsePassword} className="lock-error-alt">
+                  Entrar con mi contraseña
+                </button>
+              )}
+            </>
+          )}
+        </div>
       </div>
 
       <button onClick={onUsePassword} className="lock-link">Usar contraseña</button>
@@ -206,7 +236,19 @@ export default function LockScreen({ mode, email, onSuccess, onUsePassword }: Pr
         }
         .lock-btn:active { transform: scale(0.97); }
 
-        .lock-error { min-height: 18px; margin-top: 14px; font-size: 12.5px; color: var(--red); max-width: 300px; }
+        /* Alto reservado: sin el, la pantalla da un salto al aparecer el aviso */
+        .lock-error { min-height: 44px; margin-top: 14px; max-width: 320px; width: 100%; }
+        .lock-error-msg {
+          display: flex; align-items: flex-start; justify-content: center; gap: 7px;
+          background: var(--red-bg); border-radius: 10px; padding: 10px 12px;
+          font-size: 12.5px; line-height: 1.45; color: var(--red); text-align: left;
+        }
+        .lock-error-msg svg { flex-shrink: 0; margin-top: 1px; }
+        .lock-error-alt {
+          margin-top: 10px; background: none; border: none; cursor: pointer;
+          font-family: var(--font-sans); font-size: 12.5px; font-weight: 600;
+          color: var(--sage); text-decoration: underline; padding: 4px;
+        }
 
         .lock-link {
           position: relative; z-index: 1;

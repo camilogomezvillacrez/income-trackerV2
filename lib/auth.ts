@@ -9,8 +9,10 @@ export interface SessionData {
   lastActivity?: number;
   /** El usuario tiene Face ID (passkey) registrado. */
   hasPasskey?: boolean;
-  /** Reto WebAuthn pendiente de verificar. */
+  /** Reto WebAuthn pendiente de verificar. Formato viejo, se sigue leyendo. */
   challenge?: string;
+  /** Retos recientes pendientes de verificar, del mas nuevo al mas viejo. */
+  challenges?: string[];
 }
 
 /**

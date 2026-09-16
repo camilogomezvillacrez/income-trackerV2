@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateAuthenticationOptions } from "@simplewebauthn/server";
 import { getSession, unauthorized } from "@/lib/auth";
-import { getCredentials, relyingParty } from "@/lib/webauthn";
+import { getCredentials, relyingParty, rememberChallenge } from "@/lib/webauthn";
 
 /** Ruta pública (la app está bloqueada): exige cookie de sesión válida, no actividad reciente. */
 export async function POST(req: NextRequest) {
@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
     userVerification: "required",
   });
 
-  session.challenge = options.challenge;
+  rememberChallenge(session, options.challenge);
   await session.save();
 
   return NextResponse.json(options);

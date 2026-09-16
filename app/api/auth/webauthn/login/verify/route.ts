@@ -3,14 +3,14 @@ import { verifyAuthenticationResponse } from "@simplewebauthn/server";
 import { isoBase64URL } from "@simplewebauthn/server/helpers";
 import { getSession } from "@/lib/auth";
 import { getDb } from "@/lib/db";
-import { clearPasskeyHint, getCredentialById, relyingParty, setPasskeyHint } from "@/lib/webauthn";
+import { clearPasskeyHint, getCredentialById, relyingParty, setPasskeyHint, challengeMatcher, clearChallenges } from "@/lib/webauthn";
 
 /** Ruta pública: Face ID correcto → crea la sesión del dueño de la passkey. */
 export async function POST(req: NextRequest) {
   const session = await getSession();
-  const expectedChallenge = session.challenge;
+  const expectedChallenge = challengeMatcher(session);
   if (!expectedChallenge) {
-    return NextResponse.json({ error: "Reto vencido, intenta de nuevo" }, { status: 400 });
+    return NextResponse.json({ error: "El intento venció. Toca Desbloquear para reintentar." }, { status: 400 });
   }
 
   const body = await req.json().catch(() => null);
@@ -41,7 +41,10 @@ export async function POST(req: NextRequest) {
       requireUserVerification: true,
     });
   } catch (e) {
-    return NextResponse.json({ error: `No se pudo verificar: ${(e as Error).message}` }, { status: 400 });
+    // El texto de la libreria es para el log, no para la pantalla: es ingles
+    // tecnico y no le dice al usuario que hacer.
+    console.error("[webauthn] verify falló:", (e as Error).message);
+    return NextResponse.json({ error: "No se pudo verificar tu Face ID. Intenta de nuevo." }, { status: 400 });
   }
 
   if (!verification.verified) {
@@ -57,7 +60,7 @@ export async function POST(req: NextRequest) {
   session.email        = stored.email;
   session.lastActivity = Date.now();
   session.hasPasskey   = true;
-  session.challenge    = undefined;
+  clearChallenges(session);
   await session.save();
 
   return setPasskeyHint(NextResponse.json({ ok: true }), [stored.id]);

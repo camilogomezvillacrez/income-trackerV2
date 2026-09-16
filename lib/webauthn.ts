@@ -1,5 +1,6 @@
 import type { NextRequest, NextResponse } from "next/server";
 import { getDb } from "./db";
+import type { SessionData } from "./auth";
 
 export const RP_NAME = "Mis Finanzas";
 
@@ -92,4 +93,44 @@ export async function userHasPasskey(userId: number): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+
+/* ── Retos WebAuthn ────────────────────────────────────────────
+ * Se guardan varios, no uno.
+ *
+ * Habia una sola casilla y tres flujos escribiendo en ella (desbloqueo, login y
+ * alta de Face ID); ademas la pantalla de bloqueo vuelve a pedir opciones al
+ * reintentar y al volver de otra app. Si llegaban dos peticiones antes de
+ * verificar, la segunda pisaba a la primera: la cara firmaba un reto que el
+ * servidor ya habia olvidado y salia "Unexpected authentication response
+ * challenge". Face ID habia funcionado; el descuadre era del servidor.
+ *
+ * Aceptar los ultimos retos no afloja la seguridad: cada uno se sigue usando
+ * una sola vez, siguen siendo aleatorios y la lista se borra entera al
+ * verificar. */
+const MAX_RETOS = 3;
+
+/** Todos los retos vivos, incluido el del formato viejo. */
+function retosDe(session: SessionData): string[] {
+  if (session.challenges?.length) return session.challenges;
+  return session.challenge ? [session.challenge] : [];
+}
+
+export function rememberChallenge(session: SessionData, challenge: string): void {
+  const previos = retosDe(session).filter((c) => c !== challenge);
+  session.challenges = [challenge, ...previos].slice(0, MAX_RETOS);
+  session.challenge = challenge;
+}
+
+/** Comprobador para expectedChallenge, o null si no hay ninguno pendiente. */
+export function challengeMatcher(session: SessionData): ((c: string) => boolean) | null {
+  const retos = retosDe(session);
+  if (retos.length === 0) return null;
+  return (c: string) => retos.includes(c);
+}
+
+export function clearChallenges(session: SessionData): void {
+  session.challenges = undefined;
+  session.challenge = undefined;
 }

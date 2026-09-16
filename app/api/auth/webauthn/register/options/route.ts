@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { generateRegistrationOptions } from "@simplewebauthn/server";
 import { isoUint8Array } from "@simplewebauthn/server/helpers";
 import { getAuthUser, getSession, unauthorized } from "@/lib/auth";
-import { getCredentials, relyingParty, RP_NAME } from "@/lib/webauthn";
+import { getCredentials, relyingParty, RP_NAME, rememberChallenge } from "@/lib/webauthn";
 
 export async function POST(req: NextRequest) {
   const user = await getAuthUser();
@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
   });
 
   const session = await getSession();
-  session.challenge = options.challenge;
+  rememberChallenge(session, options.challenge);
   await session.save();
 
   return NextResponse.json(options);
