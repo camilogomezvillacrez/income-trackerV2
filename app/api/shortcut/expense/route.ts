@@ -102,12 +102,14 @@ export async function POST(req: NextRequest) {
   // función se congela al devolver la respuesta y el envío quedaría a medias.
   await sendPushToUser(Number(userId), {
     title: `Gasto registrado · ${fmt(amount)}`,
-    body: `${merchant || "Apple Pay"} → ${where}`,
+    // Se nombra el medio: si sale el nombre crudo del pase es que los últimos
+    // 4 dígitos configurados no son los que manda Apple Pay.
+    body: `${merchant || "Apple Pay"} · ${paymentMethod} → ${where}`,
     url: "/",
   });
 
   return NextResponse.json({
     ok: true,
-    message: `✓ ${fmt(amount)} en ${merchant || "Apple Pay"} · ${where}`,
+    message: `✓ ${fmt(amount)} en ${merchant || "Apple Pay"} · ${paymentMethod} · ${where}`,
   });
 }
