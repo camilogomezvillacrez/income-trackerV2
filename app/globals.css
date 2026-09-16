@@ -4,6 +4,9 @@
 /* ── Design system tokens ───────────────────────────────── */
 :root {
   --bg: #F7F8FA;
+  /* Lienzo de la app. Aparte de --bg a proposito: ese lo usan campos y chips
+     como relleno claro dentro de las tarjetas, y deben seguir siendo claros. */
+  --canvas: #EBEEF2;
   --white: #ffffff;
   --border: #E2E4E9;
   --text: #1B1F2E;
@@ -71,6 +74,11 @@
      ancho fijo vía tabular-nums. Se conserva el nombre para no tocar cada uso. */
   --font-mono: -apple-system, "SF Pro Display", system-ui, "Segoe UI", Roboto, sans-serif;
 
+  /* Sombra corta y de poco contraste: la tarjeta se despega del lienzo sin
+     parecer que levita. */
+  --shadow-card: 0 1px 2px rgba(27,31,46,.05), 0 2px 6px rgba(27,31,46,.05);
+  --shadow-card-hover: 0 2px 4px rgba(27,31,46,.06), 0 6px 16px rgba(27,31,46,.10);
+
   --radius-sm: 6px;
   --radius-md: 8px;
   --radius-lg: 10px;
@@ -90,7 +98,7 @@ html {
 }
 
 body {
-  background: var(--bg);
+  background: var(--canvas);
   color: var(--text);
   font-family: var(--font-sans);
   min-height: 100vh;
@@ -545,4 +553,43 @@ body {
   .entrada {
     animation: none;
   }
+}
+
+/* ── Tarjetas ─────────────────────────────────────────────
+   Sin borde. Un gris de 1px era toda la separacion entre la tarjeta y el
+   lienzo, y con los dos practicamente blancos no separaba nada. Ahora separan
+   el contraste del lienzo y la sombra. */
+.card {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  box-shadow: var(--shadow-card);
+}
+
+/* ── KPI ──────────────────────────────────────────────────
+   El color pasa de una barrita de 3px a ser el fondo de la tarjeta: el dato se
+   reconoce por el tono antes de leer la etiqueta.
+
+   El color-mix rebaja el pastel del token, que a tarjeta entera cansa. Donde no
+   haya color-mix queda el tono pleno, que tampoco esta mal. */
+.kpi {
+  background: var(--white);
+  border-radius: var(--radius-lg);
+  padding: 14px;
+  box-shadow: var(--shadow-card);
+  transition: box-shadow .15s ease, transform .15s ease;
+}
+.kpi-green  { background: var(--green-bg);  background: color-mix(in srgb, var(--green-bg)  60%, #fff); }
+.kpi-red    { background: var(--red-bg);    background: color-mix(in srgb, var(--red-bg)    50%, #fff); }
+.kpi-blue   { background: var(--blue-bg);   background: color-mix(in srgb, var(--blue-bg)   50%, #fff); }
+.kpi-purple { background: var(--purple-bg); background: color-mix(in srgb, var(--purple-bg) 50%, #fff); }
+
+.kpi-click { cursor: pointer; }
+.kpi-click:hover {
+  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-1px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .kpi { transition: none; }
+  .kpi-click:hover { transform: none; }
 }

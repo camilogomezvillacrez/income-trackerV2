@@ -29,7 +29,8 @@ function countUpPct(el: HTMLElement, target: number, duration = 700) {
 interface KPICardProps {
   label: string;
   value: number;
-  borderColor: string;
+  /** Tono de fondo de la tarjeta: green | red | blue | purple */
+  tint: string;
   valueColor: string;
   emoji: string;
   sub?: string;
@@ -38,7 +39,7 @@ interface KPICardProps {
   onClick?: () => void;
 }
 
-function KPICard({ label, value, borderColor, valueColor, emoji, sub, subColor, isPct, onClick }: KPICardProps) {
+function KPICard({ label, value, tint, valueColor, emoji, sub, subColor, isPct, onClick }: KPICardProps) {
   const valRef = useRef<HTMLDivElement>(null);
 
   const privacy = useDashboardStore((s) => s.privacyMode);
@@ -52,17 +53,7 @@ function KPICard({ label, value, borderColor, valueColor, emoji, sub, subColor, 
   return (
     <div
       onClick={onClick}
-      style={{
-        background: "var(--white)",
-        border: "1px solid var(--border)",
-        borderLeft: `3px solid ${borderColor}`,
-        borderRadius: "0 10px 10px 0",
-        padding: "14px",
-        cursor: onClick ? "pointer" : "default",
-        transition: onClick ? "box-shadow 0.15s" : "none",
-      }}
-      onMouseEnter={(e) => { if (onClick) (e.currentTarget as HTMLDivElement).style.boxShadow = "0 2px 12px rgba(0,0,0,.08)"; }}
-      onMouseLeave={(e) => { if (onClick) (e.currentTarget as HTMLDivElement).style.boxShadow = "none"; }}
+      className={`kpi kpi-${tint}${onClick ? " kpi-click" : ""}`}
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
         <span style={{ fontSize: "10px", color: "var(--muted)", fontWeight: 500 }}>{label}</span>
@@ -101,7 +92,7 @@ export default function KPICards() {
       <KPICard
         label={`Ingresos ${current_month}`}
         value={month_inc}
-        borderColor="var(--green)"
+        tint="green"
         valueColor="var(--green)"
         emoji="💰"
         onClick={() => navigateMovimientos("ingreso")}
@@ -109,7 +100,7 @@ export default function KPICards() {
       <KPICard
         label={`Gastos ${current_month}`}
         value={month_exp}
-        borderColor="var(--red)"
+        tint="red"
         valueColor="var(--red)"
         emoji="💸"
         onClick={() => navigateMovimientos("gasto")}
@@ -117,7 +108,7 @@ export default function KPICards() {
       <KPICard
         label="Balance"
         value={balance}
-        borderColor="var(--blue)"
+        tint="blue"
         valueColor={balance >= 0 ? "var(--green)" : "var(--red)"}
         emoji={balance >= 0 ? "⚖️" : "🔴"}
         sub={balance >= 0 ? "✓ positivo" : "⚠ negativo"}
@@ -125,7 +116,7 @@ export default function KPICards() {
       <KPICard
         label="Tasa ahorro"
         value={tasa_ahorro}
-        borderColor="var(--purple)"
+        tint="purple"
         valueColor="var(--purple)"
         emoji={tasaOk ? "🚀" : "📉"}
         sub={tasaOk ? "✓ meta cumplida" : `meta: ${savings_target}%`}

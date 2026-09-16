@@ -21,7 +21,7 @@ export default function MetasCard() {
     .slice(0, 3);
 
   return (
-    <div style={{ background: "var(--white)", border: "1px solid var(--border)", borderRadius: "10px", padding: "16px", marginBottom: "16px" }}>
+    <div className="card" style={{ marginBottom: "16px" }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", marginBottom: goals.length ? "12px" : "10px" }}>
         <p style={{ fontSize: "10px", fontWeight: 600, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.07em" }}>
           Metas

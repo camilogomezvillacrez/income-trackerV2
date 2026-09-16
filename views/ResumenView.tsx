@@ -19,14 +19,7 @@ const WeeklyChart = dynamic(() => import("@/components/dashboard/charts/WeeklyCh
 
 function Panel({ title, children, action }: { title: string; children: React.ReactNode; action?: React.ReactNode }) {
   return (
-    <div
-      style={{
-        background: "var(--white)",
-        border: "1px solid var(--border)",
-        borderRadius: "10px",
-        padding: "16px",
-      }}
-    >
+    <div className="card">
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: action ? "12px" : "14px" }}>
         <p style={{ fontSize: "10px", fontWeight: 600, color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.07em" }}>
           {title}

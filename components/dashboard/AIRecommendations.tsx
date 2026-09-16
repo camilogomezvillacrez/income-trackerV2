@@ -42,15 +42,7 @@ export default function AIRecommendations() {
   const colors = ["#3B6D11", "#B45309", "#991B1B", "#1D4ED8"];
 
   return (
-    <div
-      style={{
-        background: "var(--white)",
-        border: "1px solid var(--border)",
-        borderRadius: "10px",
-        padding: "16px",
-        marginBottom: "12px",
-      }}
-    >
+    <div className="card" style={{ marginBottom: "12px" }}>
       <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "14px" }}>
         <Bot size={16} color="#4338CA" />
         <span style={{ fontSize: "13px", fontWeight: 600, color: "var(--text)" }}>Recomendaciones IA</span>

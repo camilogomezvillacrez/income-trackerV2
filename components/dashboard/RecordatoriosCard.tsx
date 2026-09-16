@@ -78,11 +78,10 @@ export default function RecordatoriosCard() {
 
   return (
     <div
+      className="card"
       style={{
-        background: "var(--white)",
-        border: "1px solid var(--border)",
+        // La barra ambar se queda: es un aviso, y el color es la senal
         borderLeft: "3px solid var(--amber)",
-        borderRadius: "10px",
         padding: "14px 16px",
         marginBottom: "12px",
       }}
