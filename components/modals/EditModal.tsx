@@ -5,7 +5,7 @@ import ModalBase from "./ModalBase";
 import { useDashboardStore, useToastStore } from "@/store/dashboardStore";
 import PaymentPicker from "@/components/payments/PaymentPicker";
 import { CategoryGrid, SubcatGrid } from "@/components/categories/CategoryGrids";
-import { categoriesOf, findCategory } from "@/lib/categoryMeta";
+import { categoriesOf, findCategory, frequentCategories } from "@/lib/categoryMeta";
 import { defaultPayment } from "@/lib/paymentMeta";
 import AmountHero from "@/components/common/AmountHero";
 import { fmtMiles, parseMiles } from "@/lib/utils";
@@ -84,7 +84,12 @@ export default function EditModal() {
         className="date-chip"
       />
 
-      <CategoryGrid categories={categories} selected={cat} onSelect={(c) => { setCat(c); setSubcat(null); }} />
+      <CategoryGrid
+        categories={categories}
+        selected={cat}
+        onSelect={(c, sub) => { setCat(c); setSubcat(sub ?? null); }}
+        frequent={frequentCategories(data, tipo, 8, cat)}
+      />
       {tipo === "gasto" && subs.length > 0 && (
         <SubcatGrid subs={subs} selected={subcat} onSelect={setSubcat} />
       )}

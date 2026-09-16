@@ -5,7 +5,7 @@ import ModalBase from "./ModalBase";
 import { useDashboardStore, useToastStore } from "@/store/dashboardStore";
 import PaymentPicker from "@/components/payments/PaymentPicker";
 import { CategoryGrid, SubcatGrid } from "@/components/categories/CategoryGrids";
-import { categoriesOf, findCategory } from "@/lib/categoryMeta";
+import { categoriesOf, findCategory, frequentCategories } from "@/lib/categoryMeta";
 import { defaultPayment } from "@/lib/paymentMeta";
 import { todayDate, parseMiles } from "@/lib/utils";
 import AmountHero from "@/components/common/AmountHero";
@@ -29,9 +29,9 @@ export default function RegisterModal() {
     setSubcat(null);
   }
 
-  function selectCat(name: string) {
+  function selectCat(name: string, sub?: string | null) {
     setCat(name);
-    setSubcat(null);
+    setSubcat(sub ?? null);
   }
 
   async function submit() {
@@ -107,7 +107,7 @@ export default function RegisterModal() {
         className="date-chip"
       />
 
-      <CategoryGrid categories={categories} selected={cat} onSelect={selectCat} />
+      <CategoryGrid categories={categories} selected={cat} onSelect={selectCat} frequent={frequentCategories(data, tipo, 8, cat)} />
 
       {tipo === "gasto" && subs.length > 0 && (
         <SubcatGrid subs={subs} selected={subcat} onSelect={setSubcat} />

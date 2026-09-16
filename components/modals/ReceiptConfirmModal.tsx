@@ -6,7 +6,7 @@ import { useDashboardStore, useToastStore } from "@/store/dashboardStore";
 import { useReceiptStore } from "@/store/receiptStore";
 import PaymentPicker from "@/components/payments/PaymentPicker";
 import { CategoryGrid, SubcatGrid } from "@/components/categories/CategoryGrids";
-import { categoriesOf, findCategory } from "@/lib/categoryMeta";
+import { categoriesOf, findCategory, frequentCategories } from "@/lib/categoryMeta";
 import { defaultPayment } from "@/lib/paymentMeta";
 import { todayDate, fmtMiles, parseMiles } from "@/lib/utils";
 import MoneyInput from "@/components/common/MoneyInput";
@@ -137,7 +137,12 @@ export default function ReceiptConfirmModal() {
           <Field label="Descripción" value={nota} onChange={setNota} placeholder="Ej: almuerzo con cliente" />
         </div>
 
-        <CategoryGrid categories={categories} selected={cat} onSelect={(n) => { setCat(n); setSubcat(null); }} />
+        <CategoryGrid
+          categories={categories}
+          selected={cat}
+          onSelect={(n, sub) => { setCat(n); setSubcat(sub ?? null); }}
+          frequent={frequentCategories(data, "gasto", 8, cat)}
+        />
         {subs.length > 0 && <SubcatGrid subs={subs} selected={subcat} onSelect={setSubcat} />}
 
         <PaymentPicker value={pm} onChange={setPm} />

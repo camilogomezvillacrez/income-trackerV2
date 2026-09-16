@@ -70,3 +70,35 @@ export function groupCategories(categories: Category[]): CategoryGroup[] {
       categories: buckets.get(name) as Category[],
     }));
 }
+
+/**
+ * Las categorías que el usuario usa de verdad, primero. Se cuentan sus
+ * movimientos del mes (`all_movs`, que ya viaja al cliente) y el resto de
+ * huecos se rellenan con el orden normal, para que la fila esté siempre llena
+ * aunque sea 1 de enero. `keep` fuerza a incluir la que esté seleccionada:
+ * si no, elegir una rara la haría desaparecer de la vista.
+ */
+export function frequentCategories(
+  data: DashboardData | null | undefined,
+  tipo: MovementType,
+  limit = 8,
+  keep?: string | null
+): Category[] {
+  const all = categoriesOf(data, tipo);
+  if (all.length <= limit) return all;
+
+  const uso = new Map<string, number>();
+  for (const m of data?.all_movs ?? []) {
+    if (m.tipo !== tipo) continue;
+    uso.set(m.category, (uso.get(m.category) ?? 0) + 1);
+  }
+
+  const orden = [...all].sort((a, b) => (uso.get(b.name) ?? 0) - (uso.get(a.name) ?? 0));
+  const top = orden.slice(0, limit);
+
+  if (keep && !top.some((c) => c.name === keep)) {
+    const elegida = all.find((c) => c.name === keep);
+    if (elegida) top.splice(limit - 1, 1, elegida);
+  }
+  return top;
+}
