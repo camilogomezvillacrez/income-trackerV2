@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Bell, CalendarClock } from "lucide-react";
 import { useDashboardStore, useToastStore } from "@/store/dashboardStore";
-import { fmt, monthLabel, parseMiles } from "@/lib/utils";
+import { fmt, monthLabel, parseMiles, todayBogota, dueDayIn } from "@/lib/utils";
 import MoneyInput from "@/components/common/MoneyInput";
 
 /** Avisa de deudas próximas a vencer y de los gastos fijos del mes. */
@@ -20,7 +20,22 @@ export default function RecordatoriosCard() {
     .filter((d) => !d.completed && d.days_left !== null && d.days_left <= 7)
     .sort((a, b) => (a.days_left ?? 0) - (b.days_left ?? 0));
 
-  const pendientes = (data?.fixed_expenses ?? []).filter((f) => f.active && !f.registered);
+  /*
+   * Solo lo que ya vencio. Estando a 15, un gasto del 30 no es un pendiente:
+   * es algo que va a pasar, y listarlo premarcado invita a registrarlo antes
+   * de tiempo. El cron diario los registra solos al llegar su dia, asi que lo
+   * que quede aqui es lo de hoy antes de que corra el cron, o un rezagado.
+   */
+  const hoy = todayBogota();
+  const mesActual = hoy.slice(0, 7);
+  const diaHoy = Number(hoy.slice(8, 10));
+
+  const pendientes = (data?.fixed_expenses ?? []).filter((f) => {
+    if (!f.active || f.registered) return false;
+    if (activeMonth > mesActual) return false;   // mes por venir: nada vencio
+    if (activeMonth < mesActual) return true;    // mes pasado: todo vencido
+    return dueDayIn(activeMonth, f.day_of_month) <= diaHoy;
+  });
 
   // Al cambiar de mes o de datos, marcar todos los pendientes por defecto
   useEffect(() => {
