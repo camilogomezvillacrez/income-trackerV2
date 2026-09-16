@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { X } from "lucide-react";
 import { useDashboardStore } from "@/store/dashboardStore";
+import { useKeyboardViewport } from "@/hooks/useKeyboardViewport";
 
 interface Props {
   title: string;
@@ -12,6 +13,7 @@ interface Props {
 
 export default function ModalBase({ title, children, maxWidth = 480 }: Props) {
   const closeModal = useDashboardStore((s) => s.closeModal);
+  const kb = useKeyboardViewport(true);
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -26,7 +28,11 @@ export default function ModalBase({ title, children, maxWidth = 480 }: Props) {
       onClick={(e) => { if (e.target === e.currentTarget) closeModal(); }}
       style={{
         position: "fixed",
-        inset: 0,
+        left: 0,
+        right: 0,
+        // Con el teclado abierto nos ceñimos al área visible; si no, pantalla completa
+        top: kb ? kb.top : 0,
+        height: kb ? kb.height : "100%",
         background: "rgba(0,0,0,.45)",
         zIndex: 300,
         display: "flex",
@@ -42,8 +48,9 @@ export default function ModalBase({ title, children, maxWidth = 480 }: Props) {
           padding: "24px",
           width: "100%",
           maxWidth,
-          maxHeight: "90vh",
+          maxHeight: "100%",
           overflowY: "auto",
+          WebkitOverflowScrolling: "touch",
         }}
       >
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "18px" }}>

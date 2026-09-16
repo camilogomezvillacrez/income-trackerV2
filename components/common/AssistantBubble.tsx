@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Bot, X } from "lucide-react";
 import ChatPanel from "@/components/common/ChatPanel";
 import { useDashboardStore } from "@/store/dashboardStore";
+import { useKeyboardViewport } from "@/hooks/useKeyboardViewport";
 
 /**
  * Chat con la IA disponible en toda la app. Vive en el shell, no en una vista,
@@ -13,6 +14,7 @@ import { useDashboardStore } from "@/store/dashboardStore";
 export default function AssistantBubble() {
   const [open, setOpen] = useState(false);
   const locked = useDashboardStore((s) => s.locked);
+  const kb = useKeyboardViewport(open);
 
   if (locked) return null;
 
@@ -21,7 +23,14 @@ export default function AssistantBubble() {
       {open && (
         <>
           <div onClick={() => setOpen(false)} className="ab-backdrop" />
-          <div className="ab-panel">
+          <div
+            className="ab-panel"
+            style={
+              kb
+                ? { top: kb.top + 8, bottom: "auto", height: kb.height - 16 }
+                : undefined
+            }
+          >
             <div className="ab-head">
               <Bot size={16} color="#4338CA" />
               <span style={{ fontSize: "13px", fontWeight: 600, color: "var(--text)" }}>Asistente IA</span>
@@ -39,7 +48,7 @@ export default function AssistantBubble() {
 
       <button
         onClick={() => setOpen(!open)}
-        className="ab-bubble"
+        className={`ab-bubble${open ? " ab-bubble-open" : ""}`}
         aria-label="Asistente IA"
       >
         {open ? <X size={24} /> : <Bot size={24} />}
@@ -66,6 +75,11 @@ export default function AssistantBubble() {
         /* En escritorio no hay FAB verde debajo, la burbuja baja a su sitio natural */
         @media (min-width: 769px) {
           .ab-bubble { bottom: 24px; right: 24px; }
+        }
+        /* En móvil el panel ocupa la pantalla: la burbuja taparía el input y ya
+           hay una X en la cabecera */
+        @media (max-width: 768px) {
+          .ab-bubble-open { display: none; }
         }
 
         .ab-backdrop {

@@ -49,7 +49,7 @@ export default function ChatPanel({ embedded = false }: { embedded?: boolean }) 
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }, [messages.length, loading]);
 
   async function send(text?: string) {
@@ -234,6 +234,7 @@ export default function ChatPanel({ embedded = false }: { embedded?: boolean }) 
           display: "flex",
           gap: "8px",
           padding: "12px",
+          paddingBottom: "calc(12px + env(safe-area-inset-bottom))",
           borderTop: "1px solid var(--border)",
           flexShrink: 0,
         }}
