@@ -6,7 +6,7 @@ import { useDashboardStore, useToastStore } from "@/store/dashboardStore";
 import { PAYMENT_METHODS, PAYMENT_META, type PaymentMethod } from "@/constants/categories";
 import { CategoryGrid, SubcatGrid } from "@/components/categories/CategoryGrids";
 import { categoriesOf, findCategory } from "@/lib/categoryMeta";
-import MoneyInput from "@/components/common/MoneyInput";
+import AmountHero from "@/components/common/AmountHero";
 import { fmtMiles, parseMiles } from "@/lib/utils";
 import type { MovementType } from "@/types";
 
@@ -60,21 +60,30 @@ export default function EditModal() {
   }
 
   return (
-    <ModalBase title="Editar movimiento">
+    <ModalBase
+      title="Editar movimiento"
+      footer={
+        <>
+          <button onClick={closeModal} style={btnSecondary}>Cancelar</button>
+          <button onClick={submit} style={btnPrimary}>Guardar cambios</button>
+        </>
+      }
+    >
+      <AmountHero
+        value={amount}
+        onChange={setAmount}
+        color={tipo === "ingreso" ? "var(--green)" : "var(--red)"}
+      />
+
+      <div style={{ marginBottom: "18px" }}>
+        <label style={labelStyle}>Fecha</label>
+        <input type="date" value={date} onChange={(e) => setDate(e.target.value)} style={inputStyle} />
+      </div>
+
       <CategoryGrid categories={categories} selected={cat} onSelect={(c) => { setCat(c); setSubcat(null); }} />
       {tipo === "gasto" && subs.length > 0 && (
         <SubcatGrid subs={subs} selected={subcat} onSelect={setSubcat} />
       )}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "10px" }}>
-        <div>
-          <label style={labelStyle}>Monto</label>
-          <MoneyInput value={amount} onChange={setAmount} style={inputStyle} />
-        </div>
-        <div>
-          <label style={labelStyle}>Fecha</label>
-          <input type="date" value={date} onChange={(e) => setDate(e.target.value)} style={inputStyle} />
-        </div>
-      </div>
       <div style={{ marginBottom: "10px" }}>
         <label style={labelStyle}>Descripción</label>
         <input value={note} onChange={(e) => setNote(e.target.value)} style={inputStyle} />
@@ -92,10 +101,6 @@ export default function EditModal() {
           </div>
         </div>
       )}
-      <div style={{ display: "flex", gap: "8px", marginTop: "8px" }}>
-        <button onClick={closeModal} style={btnSecondary}>Cancelar</button>
-        <button onClick={submit} style={btnPrimary}>Guardar cambios</button>
-      </div>
     </ModalBase>
   );
 }

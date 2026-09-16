@@ -31,7 +31,10 @@ export function useKeyboardViewport(active: boolean): KeyboardViewport | null {
     const vv = typeof window !== "undefined" ? window.visualViewport : null;
     if (!vv) return;
 
-    const update = () => setKb({ top: vv.offsetTop, height: vv.height });
+    // Solo en movil: en escritorio los overlays tienen su tamano fijo y una
+    // medida inline se lo pisaria.
+    const update = () =>
+      setKb(window.innerWidth <= 768 ? { top: vv.offsetTop, height: vv.height } : null);
 
     update();
     vv.addEventListener("resize", update);

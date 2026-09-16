@@ -7,7 +7,7 @@ import { PAYMENT_METHODS, PAYMENT_META, type PaymentMethod } from "@/constants/c
 import { CategoryGrid, SubcatGrid } from "@/components/categories/CategoryGrids";
 import { categoriesOf, findCategory } from "@/lib/categoryMeta";
 import { todayDate, parseMiles } from "@/lib/utils";
-import MoneyInput from "@/components/common/MoneyInput";
+import AmountHero from "@/components/common/AmountHero";
 import type { MovementType } from "@/types";
 
 export default function RegisterModal() {
@@ -49,7 +49,15 @@ export default function RegisterModal() {
   const subs = cat ? findCategory(data, cat, tipo).subs : [];
 
   return (
-    <ModalBase title="Registrar movimiento">
+    <ModalBase
+      title={tipo === "ingreso" ? "Nuevo ingreso" : "Nuevo gasto"}
+      footer={
+        <>
+          <button onClick={closeModal} style={btnSecondary}>Cancelar</button>
+          <button onClick={submit} style={btnPrimary}>Guardar</button>
+        </>
+      }
+    >
       {/* Tipo toggle */}
       <div style={{ display: "flex", gap: "8px", marginBottom: "18px" }}>
         {(["ingreso", "gasto"] as MovementType[]).map((t) => {
@@ -83,23 +91,23 @@ export default function RegisterModal() {
         })}
       </div>
 
+      <AmountHero
+        value={amount}
+        onChange={setAmount}
+        color={tipo === "ingreso" ? "var(--green)" : "var(--red)"}
+        autoFocus
+      />
+
+      <div style={{ marginBottom: "18px" }}>
+        <label style={labelStyle}>Fecha</label>
+        <input type="date" value={date} onChange={(e) => setDate(e.target.value)} style={inputStyle} />
+      </div>
+
       <CategoryGrid categories={categories} selected={cat} onSelect={selectCat} />
 
       {tipo === "gasto" && subs.length > 0 && (
         <SubcatGrid subs={subs} selected={subcat} onSelect={setSubcat} />
       )}
-
-      {/* Amount + Date */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "10px" }}>
-        <div>
-          <label style={labelStyle}>Monto</label>
-          <MoneyInput value={amount} onChange={setAmount} placeholder="Ej: 50.000" style={inputStyle} />
-        </div>
-        <div>
-          <label style={labelStyle}>Fecha</label>
-          <input type="date" value={date} onChange={(e) => setDate(e.target.value)} style={inputStyle} />
-        </div>
-      </div>
 
       {/* Note */}
       <div style={{ marginBottom: "10px" }}>
@@ -139,11 +147,6 @@ export default function RegisterModal() {
         </div>
       )}
 
-      {/* Buttons */}
-      <div style={{ display: "flex", gap: "8px" }}>
-        <button onClick={closeModal} style={btnSecondary}>Cancelar</button>
-        <button onClick={submit} style={btnPrimary}>Guardar</button>
-      </div>
     </ModalBase>
   );
 }
