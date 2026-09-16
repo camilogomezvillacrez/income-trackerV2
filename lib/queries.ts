@@ -1,5 +1,6 @@
 import { getDb } from "./db";
 import { CATEGORY_SELECT, rowToCategory, seedCategories } from "./categories";
+import { PAYMENT_SELECT, rowToPayment, seedPaymentMethods } from "./paymentMethods";
 import type { DashboardData, Movement, Goal, Debt, DebtPayment, FixedExpense, CategoryTotal, MonthlyRow } from "@/types";
 
 function toNum(v: unknown): number {
@@ -21,7 +22,7 @@ export async function getDashboardData(month: string, userId: number): Promise<D
   const [
     allMonthsRes, monthlyRes, incRes, expRes, catRes, incCatRes, movsRes,
     weeklyRes, goalsRes, avgSavingsRes, debtsRes, paymentsRes, fixedRes,
-    budgetsRes, userRes, categoriesRes,
+    budgetsRes, userRes, categoriesRes, payMethodsRes,
   ] = await db.batch([
     // ── All months with data for this user ──────────────────────
     {
@@ -133,6 +134,11 @@ export async function getDashboardData(month: string, userId: number): Promise<D
     // ── Categorías editables ─────────────────────────────────────
     {
       sql: CATEGORY_SELECT,
+      args: [userId],
+    },
+    // ── Medios de pago del usuario ───────────────────────────────
+    {
+      sql: PAYMENT_SELECT,
       args: [userId],
     },
   ], "read");
@@ -266,10 +272,18 @@ export async function getDashboardData(month: string, userId: number): Promise<D
   }
   const categories = categoryRows.map(rowToCategory);
 
+  // Igual que las categorías: se siembran una sola vez, la primera vez
+  let paymentRows = payMethodsRes.rows;
+  if (paymentRows.length === 0) {
+    await seedPaymentMethods(db, userId);
+    paymentRows = (await db.execute(PAYMENT_SELECT, [userId])).rows;
+  }
+  const payment_methods = paymentRows.map(rowToPayment);
+
   return {
     monthly, by_category, by_cat_inc, recent, all_movs,
     month_inc, month_exp, balance, tasa_ahorro, savings_target,
     current_month, goals, debts, fixed_expenses, all_months, budgets, weekly,
-    categories,
+    categories, payment_methods,
   };
 }

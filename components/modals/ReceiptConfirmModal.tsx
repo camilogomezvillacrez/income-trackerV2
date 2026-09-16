@@ -4,9 +4,10 @@ import { useState } from "react";
 import Image from "next/image";
 import { useDashboardStore, useToastStore } from "@/store/dashboardStore";
 import { useReceiptStore } from "@/store/receiptStore";
-import { PAYMENT_METHODS, PAYMENT_META, type PaymentMethod } from "@/constants/categories";
+import PaymentPicker from "@/components/payments/PaymentPicker";
 import { CategoryGrid, SubcatGrid } from "@/components/categories/CategoryGrids";
 import { categoriesOf, findCategory } from "@/lib/categoryMeta";
+import { defaultPayment } from "@/lib/paymentMeta";
 import { todayDate, fmtMiles, parseMiles } from "@/lib/utils";
 import MoneyInput from "@/components/common/MoneyInput";
 
@@ -36,7 +37,7 @@ export default function ReceiptConfirmModal() {
   const [nota, setNota] = useState(f?.nota ?? "");
   const [cat, setCat] = useState<string | null>(f?.categoria ?? null);
   const [subcat, setSubcat] = useState<string | null>(f?.subcategoria ?? null);
-  const [pm, setPm] = useState<PaymentMethod>("Efectivo");
+  const [pm, setPm] = useState(() => defaultPayment(data));
   const [saving, setSaving] = useState(false);
   const [zoom, setZoom] = useState(false);
 
@@ -139,30 +140,7 @@ export default function ReceiptConfirmModal() {
         <CategoryGrid categories={categories} selected={cat} onSelect={(n) => { setCat(n); setSubcat(null); }} />
         {subs.length > 0 && <SubcatGrid subs={subs} selected={subcat} onSelect={setSubcat} />}
 
-        <div style={{ marginBottom: "14px" }}>
-          <label style={labelStyle}>Pagado con</label>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px" }}>
-            {PAYMENT_METHODS.map((m) => (
-              <button
-                key={m}
-                onClick={() => setPm(m)}
-                style={{
-                  padding: "8px 6px",
-                  border: `1.5px solid ${pm === m ? "var(--text)" : "var(--border)"}`,
-                  borderRadius: "8px",
-                  background: pm === m ? "#EEF2FF" : "var(--bg)",
-                  fontSize: "11px",
-                  fontWeight: 600,
-                  color: pm === m ? "var(--text)" : "var(--sub)",
-                  cursor: "pointer",
-                  fontFamily: "var(--font-sans)",
-                }}
-              >
-                {PAYMENT_META[m].emoji} {m}
-              </button>
-            ))}
-          </div>
-        </div>
+        <PaymentPicker value={pm} onChange={setPm} />
 
         <div style={{ display: "flex", gap: "8px" }}>
           <button onClick={close} disabled={saving} style={btnSecondary}>Descartar</button>

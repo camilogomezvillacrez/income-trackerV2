@@ -3,9 +3,10 @@
 import { useState, useEffect } from "react";
 import ModalBase from "./ModalBase";
 import { useDashboardStore, useToastStore } from "@/store/dashboardStore";
-import { PAYMENT_METHODS, PAYMENT_META, type PaymentMethod } from "@/constants/categories";
+import PaymentPicker from "@/components/payments/PaymentPicker";
 import { CategoryGrid, SubcatGrid } from "@/components/categories/CategoryGrids";
 import { categoriesOf, findCategory } from "@/lib/categoryMeta";
+import { defaultPayment } from "@/lib/paymentMeta";
 import AmountHero from "@/components/common/AmountHero";
 import { fmtMiles, parseMiles } from "@/lib/utils";
 import type { MovementType } from "@/types";
@@ -28,7 +29,7 @@ export default function EditModal() {
   const [amount, setAmount] = useState(fmtMiles(movement?.amount ?? ""));
   const [date, setDate]   = useState(movement?.date ?? "");
   const [note, setNote]   = useState(movement?.note ?? "");
-  const [pm, setPm]       = useState<PaymentMethod>((movement?.payment_method as PaymentMethod) ?? "Efectivo");
+  const [pm, setPm]       = useState(movement?.payment_method ?? defaultPayment(data));
 
   useEffect(() => {
     if (movement) {
@@ -37,7 +38,7 @@ export default function EditModal() {
       setAmount(fmtMiles(movement.amount));
       setDate(movement.date);
       setNote(movement.note ?? "");
-      setPm((movement.payment_method as PaymentMethod) ?? "Efectivo");
+      setPm(movement.payment_method ?? defaultPayment(data));
     }
   }, [editTarget]);
 
@@ -91,19 +92,7 @@ export default function EditModal() {
         <label style={labelStyle}>Descripción</label>
         <input value={note} onChange={(e) => setNote(e.target.value)} style={inputStyle} />
       </div>
-      {tipo === "gasto" && (
-        <div style={{ marginBottom: "14px" }}>
-          <label style={labelStyle}>Pagado con</label>
-          {/* 2×2: con 4 métodos en fila, "American Express" partía en dos líneas en el móvil */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "6px" }}>
-            {PAYMENT_METHODS.map((method) => (
-              <button key={method} onClick={() => setPm(method)} style={{ flex: 1, padding: "8px 6px", border: `1.5px solid ${pm === method ? "var(--text)" : "var(--border)"}`, borderRadius: "8px", background: pm === method ? "#EEF2FF" : "var(--bg)", fontSize: "11px", fontWeight: 600, color: pm === method ? "var(--text)" : "var(--sub)", cursor: "pointer", fontFamily: "var(--font-sans)", textAlign: "center", transition: "all 0.15s" }}>
-                {PAYMENT_META[method].emoji} {method}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
+      {tipo === "gasto" && <PaymentPicker value={pm} onChange={setPm} />}
     </ModalBase>
   );
 }

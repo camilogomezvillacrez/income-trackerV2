@@ -2,9 +2,9 @@
 
 import { Trash2 } from "lucide-react";
 import type { Movement } from "@/types";
-import { paymentMeta } from "@/constants/categories";
 import CategoryIcon from "@/components/common/CategoryIcon";
 import { findCategory } from "@/lib/categoryMeta";
+import { findPayment } from "@/lib/paymentMeta";
 import { useDashboardStore } from "@/store/dashboardStore";
 import Money from "@/components/common/Money";
 import { useRef } from "react";
@@ -26,9 +26,8 @@ export default function TransactionRow({ r, flush = false }: Props) {
   const category = findCategory(data, r.category, r.tipo);
 
   // Subtítulo en texto simple, sin chips: "Suscripciones · Nu"
-  const pm = !isInc && r.payment_method && r.payment_method !== "Efectivo"
-    ? paymentMeta(r.payment_method).short
-    : null;
+  const payment = !isInc && r.payment_method ? findPayment(data, r.payment_method) : null;
+  const pm = payment && payment.kind !== "efectivo" ? payment.short : null;
   const subtitle = [r.category, pm].filter(Boolean).join(" · ");
 
   function handleEdit()   { setEditTarget({ tipo: r.tipo, id: r.id }); openModal("edit"); }

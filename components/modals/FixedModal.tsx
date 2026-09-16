@@ -3,8 +3,8 @@
 import { useState } from "react";
 import ModalBase from "./ModalBase";
 import { useDashboardStore, useToastStore } from "@/store/dashboardStore";
-import { PAYMENT_METHODS } from "@/constants/categories";
 import { categoriesOf, findCategory } from "@/lib/categoryMeta";
+import { defaultPayment, paymentsOf } from "@/lib/paymentMeta";
 import MoneyInput from "@/components/common/MoneyInput";
 import { fmtMiles, parseMiles } from "@/lib/utils";
 
@@ -43,11 +43,12 @@ export default function FixedModal() {
   const [category, setCategory] = useState(editing?.category ?? categoriesOf(data, "gasto")[0]?.name ?? "General");
   const [subcategory, setSubcategory] = useState(editing?.subcategory ?? "");
   const [day, setDay] = useState(String(editing?.day_of_month ?? 1));
-  const [method, setMethod] = useState(editing?.payment_method ?? "Efectivo");
+  const [method, setMethod] = useState(editing?.payment_method ?? defaultPayment(data));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
   const subs = findCategory(data, category, "gasto").subs.map((s) => s.name);
+  const methods = paymentsOf(data);
 
   async function submit() {
     const monto = parseMiles(amount);
@@ -142,8 +143,8 @@ export default function FixedModal() {
 
       <label style={label}>Método de pago</label>
       <select value={method} onChange={(e) => setMethod(e.target.value)} style={inp}>
-        {PAYMENT_METHODS.map((m) => (
-          <option key={m} value={m}>{m}</option>
+        {methods.map((m) => (
+          <option key={m.id} value={m.name}>{m.emoji} {m.name}{m.last4 ? ` ••${m.last4}` : ""}</option>
         ))}
       </select>
 

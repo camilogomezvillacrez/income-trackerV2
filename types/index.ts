@@ -27,6 +27,20 @@ export interface Category {
   position: number;
 }
 
+/** Medio de pago del usuario: efectivo, tarjeta, billetera... `last4` es opcional. */
+export type PaymentKind = "efectivo" | "debito" | "credito" | "otro";
+
+export interface PaymentMethod {
+  id: number;
+  name: string;
+  emoji: string;
+  /** Nombre corto para la lista de movimientos ("Nu"). */
+  short: string;
+  kind: PaymentKind;
+  last4: string | null;
+  position: number;
+}
+
 export interface CategoryTotal {
   category: string;
   total: number;
@@ -118,6 +132,7 @@ export interface DashboardData {
   budgets: Record<string, number>;
   weekly: Record<string, number>;
   categories: Category[];
+  payment_methods: PaymentMethod[];
 }
 
 /** Datos que la IA extrae de la foto de un recibo, antes de que el usuario los confirme. */

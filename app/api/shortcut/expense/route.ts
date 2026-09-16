@@ -5,6 +5,7 @@ import { hashShortcutToken } from "@/lib/shortcutToken";
 import { sendPushToUser } from "@/lib/push";
 import { categorizeByRules, parseAmount, todayBogota } from "@/lib/shortcutParse";
 import { getCategories } from "@/lib/categories";
+import { getPaymentMethods, matchPaymentMethod } from "@/lib/paymentMethods";
 import type { Category } from "@/types";
 
 /*
@@ -80,6 +81,8 @@ export async function POST(req: NextRequest) {
   const card     = String(body.card ?? "").trim().slice(0, 60);
 
   const expenseCats = (await getCategories(Number(userId))).filter((c) => c.tipo === "gasto");
+  // La tarjeta del pase se guarda con el nombre que el usuario le puso en Configuración
+  const paymentMethod = matchPaymentMethod(card, await getPaymentMethods(Number(userId))) ?? "Apple Pay";
   const cat = ruleForUser(merchant, expenseCats)
     ?? await categorizeWithAI(merchant, expenseCats)
     ?? { category: "General", subcategory: null };
@@ -89,7 +92,7 @@ export async function POST(req: NextRequest) {
      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       amount, cat.category, cat.subcategory, merchant || "Apple Pay",
-      todayBogota(), new Date().toISOString(), card || "Apple Pay", Number(userId),
+      todayBogota(), new Date().toISOString(), paymentMethod, Number(userId),
     ]
   );
 
