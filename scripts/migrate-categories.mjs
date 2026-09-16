@@ -28,6 +28,7 @@ await db.execute(`
     user_id        INTEGER NOT NULL,
     tipo           TEXT    NOT NULL CHECK (tipo IN ('gasto', 'ingreso')),
     name           TEXT    NOT NULL,
+    grupo          TEXT    NOT NULL DEFAULT '',
     icon           TEXT    NOT NULL,
     color          TEXT    NOT NULL,
     subcategories  TEXT    NOT NULL DEFAULT '[]',

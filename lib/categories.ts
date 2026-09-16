@@ -1,10 +1,10 @@
 import type { Client, Row } from "@libsql/client";
 import { getDb } from "./db";
-import { buildDefaultCategories } from "@/constants/categories";
+import { buildDefaultCategories, DEFAULT_GROUP, GROUP_OF } from "@/constants/categories";
 import type { Category, MovementType, Subcategory } from "@/types";
 
 export const CATEGORY_SELECT =
-  "SELECT id, tipo, name, icon, color, subcategories, position FROM categories WHERE user_id=? ORDER BY tipo, position, id";
+  "SELECT id, tipo, name, grupo, icon, color, subcategories, position FROM categories WHERE user_id=? ORDER BY tipo, position, id";
 
 function parseSubs(raw: unknown): Subcategory[] {
   try {
@@ -23,6 +23,7 @@ export function rowToCategory(r: Row): Category {
     id: Number(r.id),
     tipo: String(r.tipo) === "ingreso" ? "ingreso" : "gasto",
     name: String(r.name),
+    grupo: String(r.grupo ?? ""),
     icon: String(r.icon),
     color: String(r.color),
     subs: parseSubs(r.subcategories),
@@ -53,6 +54,7 @@ export async function seedCategories(db: Client, userId: number) {
       all.push({
         tipo,
         name,
+        grupo: tipo === "gasto" ? (GROUP_OF[name] ?? DEFAULT_GROUP) : "",
         icon: name === "General" ? "emoji:⚪" : "emoji:🏷️",
         color: "#6B7280",
         subs: [],
@@ -66,9 +68,9 @@ export async function seedCategories(db: Client, userId: number) {
   const now = new Date().toISOString();
   await db.batch(
     all.map((c) => ({
-      sql: `INSERT OR IGNORE INTO categories (user_id, tipo, name, icon, color, subcategories, position, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      args: [userId, c.tipo, c.name, c.icon, c.color, JSON.stringify(c.subs), c.position, now],
+      sql: `INSERT OR IGNORE INTO categories (user_id, tipo, name, grupo, icon, color, subcategories, position, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      args: [userId, c.tipo, c.name, c.grupo, c.icon, c.color, JSON.stringify(c.subs), c.position, now],
     })),
     "write"
   );
@@ -90,6 +92,7 @@ const COLOR_RE = /^#[0-9a-fA-F]{6}$/;
 
 export interface CategoryInput {
   name: string;
+  grupo: string;
   icon: string;
   color: string;
   subs: Subcategory[];
@@ -101,6 +104,8 @@ export function validateCategoryInput(body: unknown): CategoryInput | string {
 
   const name = String(b.name ?? "").trim();
   if (!name || name.length > 40) return "El nombre debe tener entre 1 y 40 caracteres";
+
+  const grupo = String(b.grupo ?? "").trim().slice(0, 40);
 
   const icon = String(b.icon ?? "");
   if (!ICON_RE.test(icon)) return "Elige un ícono o emoji válido";
@@ -117,5 +122,5 @@ export function validateCategoryInput(body: unknown): CategoryInput | string {
     }
   }
 
-  return { name, icon, color, subs };
+  return { name, grupo, icon, color, subs };
 }

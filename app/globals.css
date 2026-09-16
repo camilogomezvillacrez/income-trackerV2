@@ -232,6 +232,14 @@ body {
 .catadm-chev { color: var(--muted); }
 .catadm-note { font-size: 12.5px; color: var(--muted); text-align: center; }
 
+.catadm-group + .catadm-group { margin-top: 16px; }
+.catadm-group-head { display: flex; align-items: center; gap: 7px; margin: 0 0 7px; padding: 0 2px; }
+.catadm-group-dot { width: 9px; height: 9px; border-radius: 3px; flex-shrink: 0; }
+.catadm-group-head h3 {
+  margin: 0; font-size: 12px; font-weight: 700; color: var(--sub);
+  text-transform: uppercase; letter-spacing: 0.06em; font-family: var(--font-sans);
+}
+
 .catadm-primary {
   width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px;
   background: var(--sage); color: #fff; border: none; border-radius: 14px; padding: 14px;
@@ -323,6 +331,25 @@ body {
 .catpk-cancel, .catpk-apply { flex: 1; border-radius: 12px; padding: 12px; font-size: 15px; font-weight: 600; font-family: var(--font-sans); cursor: pointer; }
 .catpk-cancel { background: none; border: 1px solid var(--border); color: var(--sub); }
 .catpk-apply { background: var(--sage); border: none; color: #fff; }
+
+/* ── Mover los registros de una subcategoría que se quita ── */
+.submv { max-width: 380px; }
+.submv-head { padding: 20px 18px 12px; }
+.submv-head h3 { margin: 0 0 6px; font-size: 17px; font-weight: 700; color: var(--text); font-family: var(--font-sans); }
+.submv-head p { margin: 0; font-size: 13.5px; line-height: 1.5; color: var(--sub); }
+.submv-head strong { color: var(--text); }
+.submv-body { display: flex; flex-direction: column; gap: 6px; padding: 0 14px 4px; overflow-y: auto; }
+.submv-opt {
+  display: flex; align-items: center; gap: 10px; width: 100%; padding: 11px 12px;
+  background: var(--bg); border: 1.5px solid var(--border); border-radius: 12px;
+  font-family: var(--font-sans); cursor: pointer; color: var(--sub); text-align: left;
+}
+.submv-opt.on { border-color: var(--sage); background: rgba(74, 124, 89, 0.08); color: var(--text); }
+.submv-opt.on svg { margin-left: auto; color: var(--sage); }
+.submv-opt-emoji { font-size: 16px; line-height: 1; width: 20px; text-align: center; flex-shrink: 0; }
+.submv-opt-name { font-size: 14px; font-weight: 500; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.submv-none { border-style: dashed; }
+.submv-go { background: var(--red); }
 
 /* ── Toast ───────────────────────────────────────────────── */
 .toast-wrap {

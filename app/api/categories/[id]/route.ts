@@ -8,16 +8,51 @@ type Params = { params: Promise<{ id: string }> };
 
 async function loadCategory(userId: number, id: string) {
   const res = await getDb().execute(
-    "SELECT id, tipo, name, icon, color, subcategories, position FROM categories WHERE id=? AND user_id=?",
+    "SELECT id, tipo, name, grupo, icon, color, subcategories, position FROM categories WHERE id=? AND user_id=?",
     [Number(id), userId]
   );
   return res.rows[0] ? rowToCategory(res.rows[0]) : null;
 }
 
 /**
+ * Cuántos registros usa cada subcategoría de esta categoría. El editor lo pide
+ * al abrir, para poder avisar antes de que quites una que sí tiene gastos.
+ */
+export async function GET(req: NextRequest, { params }: Params) {
+  const user = await getAuthUser();
+  if (!user) return unauthorized();
+
+  const current = await loadCategory(user.userId, (await params).id);
+  if (!current) return NextResponse.json({ error: "Categoría no encontrada" }, { status: 404 });
+
+  const movTable = current.tipo === "ingreso" ? "incomes" : "expenses";
+  const sql = current.tipo === "gasto"
+    ? `SELECT subcategory AS name, COUNT(*) AS n FROM (
+         SELECT subcategory FROM expenses       WHERE user_id=? AND category=? AND subcategory IS NOT NULL
+         UNION ALL
+         SELECT subcategory FROM fixed_expenses WHERE user_id=? AND category=? AND subcategory IS NOT NULL
+       ) GROUP BY subcategory`
+    : `SELECT subcategory AS name, COUNT(*) AS n FROM ${movTable}
+       WHERE user_id=? AND category=? AND subcategory IS NOT NULL GROUP BY subcategory`;
+  const args = current.tipo === "gasto"
+    ? [user.userId, current.name, user.userId, current.name]
+    : [user.userId, current.name];
+
+  const res = await getDb().execute(sql, args);
+  const usage: Record<string, number> = {};
+  for (const r of res.rows) usage[String(r.name)] = Number(r.n);
+
+  return NextResponse.json({ usage });
+}
+
+/**
  * Edita nombre, ícono, color y subcategorías. Los movimientos, presupuestos y
  * gastos fijos guardan el NOMBRE, así que un renombre los actualiza en el
  * mismo lote (y subRenames hace lo propio con las subcategorías).
+ *
+ * Si una subcategoría desaparece de la lista, sus registros NO pueden quedar
+ * apuntando a una etiqueta que ya no existe: `subMoves` dice a cuál pasarlos y,
+ * si no viene, se quedan sin subcategoría.
  */
 export async function PATCH(req: NextRequest, { params }: Params) {
   const user = await getAuthUser();
@@ -46,8 +81,11 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   const movTable = current.tipo === "ingreso" ? "incomes" : "expenses";
   const stmts: InStatement[] = [
     {
-      sql: "UPDATE categories SET name=?, icon=?, color=?, subcategories=? WHERE id=? AND user_id=?",
-      args: [input.name, input.icon, input.color, JSON.stringify(input.subs), current.id, uid],
+      sql: "UPDATE categories SET name=?, grupo=?, icon=?, color=?, subcategories=? WHERE id=? AND user_id=?",
+      args: [
+        input.name, current.tipo === "gasto" ? input.grupo : "",
+        input.icon, input.color, JSON.stringify(input.subs), current.id, uid,
+      ],
     },
   ];
 
@@ -73,6 +111,30 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       stmts.push({
         sql: "UPDATE fixed_expenses SET subcategory=? WHERE user_id=? AND category=? AND subcategory=?",
         args: [next, uid, input.name, from],
+      });
+    }
+  }
+
+  // Subcategorías que desaparecen: sus registros se mueven a donde diga
+  // subMoves, o se quedan sin subcategoría. Va al final, cuando los renombres
+  // ya se aplicaron, para no reubicar algo que en realidad solo cambió de nombre.
+  const renamedFrom = new Set(renames.map(([from]) => from));
+  const moves = body?.subMoves && typeof body.subMoves === "object"
+    ? (body.subMoves as Record<string, unknown>)
+    : {};
+
+  for (const gone of current.subs) {
+    if (input.subs.some((s) => s.name === gone.name) || renamedFrom.has(gone.name)) continue;
+    const raw = typeof moves[gone.name] === "string" ? String(moves[gone.name]).trim() : "";
+    const dest = input.subs.some((s) => s.name === raw) ? raw : null;
+    stmts.push({
+      sql: `UPDATE ${movTable} SET subcategory=? WHERE user_id=? AND category=? AND subcategory=?`,
+      args: [dest, uid, input.name, gone.name],
+    });
+    if (current.tipo === "gasto") {
+      stmts.push({
+        sql: "UPDATE fixed_expenses SET subcategory=? WHERE user_id=? AND category=? AND subcategory=?",
+        args: [dest, uid, input.name, gone.name],
       });
     }
   }

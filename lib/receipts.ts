@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { Row } from "@libsql/client";
 import type { Category, Receipt, ReceiptFields } from "@/types";
+import { groupCategories } from "@/lib/categoryMeta";
 
 const client = new Anthropic();
 
@@ -49,10 +50,15 @@ const EXTRACT_TOOL: Anthropic.Tool = {
   },
 };
 
+/** Las categorias de gasto agrupadas: el grupo le da contexto al modelo. */
 function categoryList(categories: Category[]): string {
-  return categories
-    .filter((c) => c.tipo === "gasto")
-    .map((c) => `- ${c.name}${c.subs.length ? ` (subcategorías: ${c.subs.map((s) => s.name).join(", ")})` : ""}`)
+  return groupCategories(categories.filter((c) => c.tipo === "gasto"))
+    .map((g) => {
+      const cats = g.categories
+        .map((c) => `  - ${c.name}${c.subs.length ? ` (subcategorias: ${c.subs.map((s) => s.name).join(", ")})` : ""}`)
+        .join("\n");
+      return g.name ? `${g.name}:\n${cats}` : cats;
+    })
     .join("\n");
 }
 

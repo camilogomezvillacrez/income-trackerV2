@@ -2,11 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { getDb } from "@/lib/db";
 import { hashShortcutToken } from "@/lib/shortcutToken";
+import { checkLimit, SHORTCUT_LIMIT } from "@/lib/rateLimit";
 import { sendPushToUser } from "@/lib/push";
 import { categorizeByRules, parseAmount, todayBogota } from "@/lib/shortcutParse";
 import { getCategories } from "@/lib/categories";
 import { getPaymentMethods, matchPaymentMethod } from "@/lib/paymentMethods";
 import type { Category } from "@/types";
+import { groupCategories } from "@/lib/categoryMeta";
 
 /*
  * Endpoint del atajo de Apple Wallet. Ruta pública: se autentica con el
@@ -23,7 +25,12 @@ async function categorizeWithAI(merchant: string, categories: Category[]): Promi
   if (!process.env.ANTHROPIC_API_KEY || !merchant || categories.length === 0) return null;
   try {
     const client = new Anthropic({ timeout: 6000, maxRetries: 0 });
-    const options = categories.map((c) => `${c.name}: ${c.subs.map((s) => s.name).join(", ")}`).join("\n");
+    const options = groupCategories(categories)
+      .map((g) => {
+        const cats = g.categories.map((c) => `  ${c.name}: ${c.subs.map((s) => s.name).join(", ")}`).join("\n");
+        return g.name ? `${g.name}\n${cats}` : cats;
+      })
+      .join("\n");
     const msg = await client.messages.create({
       model: "claude-haiku-4-5-20251001",
       max_tokens: 60,
@@ -69,6 +76,17 @@ export async function POST(req: NextRequest) {
   const userId = userRes.rows[0]?.id;
   if (userId == null) {
     return NextResponse.json({ error: "Token inválido" }, { status: 401 });
+  }
+
+  // Los comercios desconocidos se clasifican con Claude, que gasta saldo:
+  // se topa por usuario para que un atajo en bucle no se lo coma.
+  const limit = checkLimit(SHORTCUT_LIMIT, String(userId));
+  if (!limit.allowed) {
+    const mins = Math.ceil((limit.retryAfterMs ?? 0) / 60000);
+    return NextResponse.json(
+      { error: `Demasiados gastos seguidos. Intenta en ${mins} minutos.` },
+      { status: 429, headers: { "Retry-After": String(Math.ceil((limit.retryAfterMs ?? 0) / 1000)) } }
+    );
   }
 
   const body = await req.json().catch(() => ({}));

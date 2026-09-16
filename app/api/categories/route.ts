@@ -29,11 +29,11 @@ export async function POST(req: NextRequest) {
   }
 
   await db.execute(
-    `INSERT INTO categories (user_id, tipo, name, icon, color, subcategories, position, created_at)
-     VALUES (?, ?, ?, ?, ?, ?,
+    `INSERT INTO categories (user_id, tipo, name, grupo, icon, color, subcategories, position, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?,
        (SELECT COALESCE(MAX(position), -1) + 1 FROM categories WHERE user_id=? AND tipo=?), ?)`,
     [
-      user.userId, tipo, input.name, input.icon, input.color, JSON.stringify(input.subs),
+      user.userId, tipo, input.name, tipo === "gasto" ? input.grupo : "", input.icon, input.color, JSON.stringify(input.subs),
       user.userId, tipo, new Date().toISOString(),
     ]
   );

@@ -21,6 +21,8 @@ export interface Category {
   id: number;
   tipo: MovementType;
   name: string;
+  /** Grupo que la contiene ("Familia", "Comida"...). "" = sin grupo. */
+  grupo: string;
   icon: string;
   color: string;
   subs: Subcategory[];
