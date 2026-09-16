@@ -10,6 +10,9 @@ const PUBLIC_PATHS = [
   "/api/auth/webauthn/login",
   // Atajo de Apple Wallet: se autentica con token propio, no con cookie
   "/api/shortcut/expense",
+  // Cron de Vercel: llega sin cookie y se autentica con CRON_SECRET. Sin esto
+  // el proxy le devolvia 401 y la ruta no se ejecutaba ni un solo dia.
+  "/api/cron/",
   "/sw.js", "/manifest.webmanifest",
 ];
 
