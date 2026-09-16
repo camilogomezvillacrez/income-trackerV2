@@ -43,6 +43,7 @@ export const CAT_META: Record<string, CatMeta> = {
   Ropa:               { emoji: "👕", color: "#065F46", bg: "#D1FAE5" },
   Salud:              { emoji: "❤️", color: "#9D174D", bg: "#FCE7F3" },
   Suplementos:        { emoji: "🥤", color: "#059669", bg: "#D1FAE5" },
+  "Tecnología":       { emoji: "💻", color: "#0369A1", bg: "#E0F2FE" },
   Hijos:              { emoji: "🧒", color: "#D97706", bg: "#FEF3C7" },
   Mascotas:           { emoji: "🐾", color: "#92400E", bg: "#FEF3C7" },
   Regalos:            { emoji: "🎁", color: "#BE123C", bg: "#FFE4E6" },
@@ -73,7 +74,7 @@ export const CAT_META: Record<string, CatMeta> = {
  */
 export const EXP_CATS_BY_GROUP: [group: string, cats: readonly string[]][] = [
   ["Comida y Bebida",   ["Mercado", "Restaurantes", "Domicilios"]],
-  ["Estilo de Vida",    ["Cuidado Personal", "Educación", "Entretenimiento", "GYM", "Ropa", "Salud", "Suplementos"]],
+  ["Estilo de Vida",    ["Cuidado Personal", "Educación", "Entretenimiento", "GYM", "Ropa", "Salud", "Suplementos", "Tecnología"]],
   ["Familia",           ["Hijos", "Mascotas", "Regalos"]],
   ["Hogar y Servicios", ["Arriendo", "Servicios", "Suscripciones"]],
   ["Otros",             ["Deudas", "Pólizas", "Innecesario", "Ahorro"]],

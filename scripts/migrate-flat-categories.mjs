@@ -31,7 +31,7 @@ const db = createClient({ url: env.TURSO_DATABASE_URL, authToken: env.TURSO_AUTH
 // ── Espejo de constants/categories.ts ────────────────────────────────────────
 const GRUPOS = [
   ["Comida y Bebida",   ["Mercado", "Restaurantes", "Domicilios"]],
-  ["Estilo de Vida",    ["Cuidado Personal", "Educación", "Entretenimiento", "GYM", "Ropa", "Salud", "Suplementos"]],
+  ["Estilo de Vida",    ["Cuidado Personal", "Educación", "Entretenimiento", "GYM", "Ropa", "Salud", "Suplementos", "Tecnología"]],
   ["Familia",           ["Hijos", "Mascotas", "Regalos"]],
   ["Hogar y Servicios", ["Arriendo", "Servicios", "Suscripciones"]],
   ["Otros",             ["Deudas", "Pólizas", "Innecesario", "Ahorro"]],
@@ -49,6 +49,7 @@ const META = {
   Ropa:               { emoji: "👕", color: "#065F46" },
   Salud:              { emoji: "❤️", color: "#9D174D" },
   Suplementos:        { emoji: "🥤", color: "#059669" },
+  "Tecnología":       { emoji: "💻", color: "#0369A1" },
   Hijos:              { emoji: "🧒", color: "#D97706" },
   Mascotas:           { emoji: "🐾", color: "#92400E" },
   Regalos:            { emoji: "🎁", color: "#BE123C" },
@@ -81,8 +82,8 @@ const MAPA = {
   Ropa:               { "*": "Ropa" },
   "Cuidado personal": { "*": "Cuidado Personal" },
   "Educación":        { "*": "Educación" },
-  // Solo el software sube a Suscripciones. Un celular o un computador no tienen
-  // destino obvio en la lista nueva: se reportan y se quedan donde están.
+  // El software sube a Suscripciones; lo demás (un celular, un computador)
+  // se queda en Tecnología, que el bucle de identidad le pone de comodín.
   "Tecnología":       { Software: "Suscripciones" },
   Suscripciones:      { "*": "Suscripciones" },
   Mascotas:           { "*": "Mascotas" },
