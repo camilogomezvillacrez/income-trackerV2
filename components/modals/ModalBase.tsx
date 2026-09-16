@@ -47,7 +47,7 @@ export default function ModalBase({ title, children, maxWidth = 480, footer }: P
           y el teclado de iOS es translucido y la refleja. Quien se cine al area
           visible es la tarjeta, para que el pie quede justo sobre el teclado. */}
       <div
-        className="sheet-card"
+        className="sheet-card entrada"
         style={
           kb
             ? { maxWidth, position: "absolute", top: kb.top, left: 0, right: 0, height: kb.height }

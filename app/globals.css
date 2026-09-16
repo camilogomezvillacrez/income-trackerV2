@@ -515,3 +515,34 @@ body {
   color: var(--sub);
   outline: none;
 }
+
+/* ── Entrada de las hojas y dialogos ──────────────────────────
+   Suelta a proposito: se le cuelga a cualquier contenedor que aparezca encima
+   del contenido, sea una hoja, un dialogo o una tarjeta.
+
+   Solo opacity y transform, que el navegador resuelve en la GPU; animar alto,
+   margenes o posicion obliga a recalcular el diseno en cada fotograma y se ve a
+   tirones en un telefono de gama media.
+
+   No hay animacion de salida: los modales se quitan del DOM de golpe, asi que
+   no daria tiempo a verse. */
+.entrada {
+  animation: entrada 260ms ease-out both;
+}
+
+@keyframes entrada {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .entrada {
+    animation: none;
+  }
+}
