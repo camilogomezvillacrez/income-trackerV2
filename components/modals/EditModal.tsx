@@ -75,10 +75,13 @@ export default function EditModal() {
         color={tipo === "ingreso" ? "var(--green)" : "var(--red)"}
       />
 
-      <div style={{ marginBottom: "18px" }}>
-        <label style={labelStyle}>Fecha</label>
-        <input type="date" value={date} onChange={(e) => setDate(e.target.value)} style={inputStyle} />
-      </div>
+      <input
+        type="date"
+        value={date}
+        onChange={(e) => setDate(e.target.value)}
+        aria-label="Fecha"
+        className="date-chip"
+      />
 
       <CategoryGrid categories={categories} selected={cat} onSelect={(c) => { setCat(c); setSubcat(null); }} />
       {tipo === "gasto" && subs.length > 0 && (

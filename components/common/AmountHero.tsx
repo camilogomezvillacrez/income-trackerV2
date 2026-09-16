@@ -32,8 +32,9 @@ export default function AmountHero({ value, onChange, color = "var(--text)", aut
         aria-label="Monto"
         className="hero-input"
         style={{ color: value ? color : "var(--border)" }}
-        // El ancho sigue a la cifra para que quede centrada junto al signo
-        size={Math.max(value.length || 1, 1)}
+        // El ancho sigue a la cifra para que quede centrada junto al signo.
+        // Con tope: sin el, una cifra absurda ensancharia la pagina entera.
+        size={Math.min(Math.max(value.length || 1, 1), 12)}
       />
     </div>
   );

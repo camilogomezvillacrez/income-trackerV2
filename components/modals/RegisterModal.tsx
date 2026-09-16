@@ -98,10 +98,13 @@ export default function RegisterModal() {
         autoFocus
       />
 
-      <div style={{ marginBottom: "18px" }}>
-        <label style={labelStyle}>Fecha</label>
-        <input type="date" value={date} onChange={(e) => setDate(e.target.value)} style={inputStyle} />
-      </div>
+      <input
+        type="date"
+        value={date}
+        onChange={(e) => setDate(e.target.value)}
+        aria-label="Fecha"
+        className="date-chip"
+      />
 
       <CategoryGrid categories={categories} selected={cat} onSelect={selectCat} />
 

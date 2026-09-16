@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Sans } from "next/font/google";
 import "./globals.css";
 import ServiceWorker from "@/components/common/ServiceWorker";
+import NoZoom from "@/components/common/NoZoom";
 
 // Instanciada aqui y solo aqui: hacerlo en otro componente duplica la descarga.
 const plexSans = IBM_Plex_Sans({
@@ -35,6 +36,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col antialiased">
         {children}
         <ServiceWorker />
+        <NoZoom />
       </body>
     </html>
   );

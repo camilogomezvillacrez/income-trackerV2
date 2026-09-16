@@ -41,10 +41,19 @@ export default function ModalBase({ title, children, maxWidth = 480, footer }: P
     <div
       className="sheet-root"
       onClick={(e) => { if (e.target === e.currentTarget) closeModal(); }}
-      // Con el teclado abierto el alto lo manda el area visible medida.
-      style={kb ? { top: kb.top, height: kb.height } : undefined}
     >
-      <div className="sheet-card" style={{ maxWidth }}>
+      {/* La lamina cubre siempre toda la pantalla y es opaca: si se encoge al
+          area visible, entre el pie y las teclas se cuela la pantalla de atras,
+          y el teclado de iOS es translucido y la refleja. Quien se cine al area
+          visible es la tarjeta, para que el pie quede justo sobre el teclado. */}
+      <div
+        className="sheet-card"
+        style={
+          kb
+            ? { maxWidth, position: "absolute", top: kb.top, left: 0, right: 0, height: kb.height }
+            : { maxWidth }
+        }
+      >
         <div className="sheet-head">
           <button onClick={closeModal} className="sheet-back" aria-label="Volver">
             <ChevronLeft size={24} />

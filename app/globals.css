@@ -423,6 +423,7 @@ body {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
+  overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   padding: 16px;
   /* Para que el ultimo campo no quede pegado al teclado */
@@ -430,7 +431,9 @@ body {
 }
 
 @media (max-width: 768px) {
-  /* Pantalla completa: sin backdrop, sin bordes, la pagina es el formulario */
+  /* Pantalla completa: sin bordes, la pagina es el formulario. Opaca hasta el
+     borde para que el teclado no tenga nada que reflejar. */
+  .sheet-root { background: var(--white); }
   .sheet-card { max-width: none !important; height: 100%; }
   .sheet-close { display: none; }
 }
@@ -496,4 +499,19 @@ body {
 }
 @media (max-width: 380px) {
   .hero-input { font-size: 34px; }
+}
+
+/* La fecha acompana al monto, no compite con el: chip estrecho y centrado */
+.date-chip {
+  display: block;
+  margin: 0 auto 20px;
+  width: auto;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 12.5px;
+  font-family: var(--font-sans);
+  color: var(--sub);
+  outline: none;
 }
