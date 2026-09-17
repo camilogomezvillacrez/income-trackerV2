@@ -156,6 +156,20 @@ export interface ReceiptFields {
   nota: string | null;
 }
 
+/**
+ * Gasto ya registrado que podria ser el mismo del recibo. El atajo de Wallet ya
+ * crea el gasto al pagar, asi que fotografiar el recibo despues lo duplicaba:
+ * con esto el recibo se adjunta al que ya existe.
+ */
+export interface ExpenseMatch {
+  id: number;
+  amount: number;
+  category: string;
+  note: string;
+  date: string;
+  payment_method: string | null;
+}
+
 /** Recibo ya guardado. `image_path` es la ruta en el Blob privado, no una URL pública. */
 export interface Receipt {
   id: number;

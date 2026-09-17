@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { put } from "@vercel/blob";
 import { getAuthUser, unauthorized } from "@/lib/auth";
+import { todayDate } from "@/lib/utils";
 import { getCategories } from "@/lib/categories";
-import { extractReceipt, ALLOWED_TYPES, MAX_IMAGE_BYTES } from "@/lib/receipts";
+import { extractReceipt, findExpenseMatches, ALLOWED_TYPES, MAX_IMAGE_BYTES } from "@/lib/receipts";
 
 export const maxDuration = 60;
 
@@ -45,11 +46,17 @@ export async function POST(req: NextRequest) {
       file.type as "image/jpeg" | "image/png" | "image/webp",
       categories
     );
-    return NextResponse.json({ pathname: blob.pathname, fields });
+    // Si el gasto ya estaba registrado (el atajo de Wallet lo crea al pagar),
+    // el modal ofrece adjuntarle el recibo en vez de duplicarlo.
+    const matches = fields.valor
+      ? await findExpenseMatches(user.userId, fields.valor, fields.fecha ?? todayDate())
+      : [];
+
+    return NextResponse.json({ pathname: blob.pathname, fields, matches });
   } catch {
     // La foto ya quedó guardada: el usuario puede llenar los datos a mano.
     return NextResponse.json(
-      { pathname: blob.pathname, fields: null, error: "No pude leer el recibo. Llena los datos a mano." },
+      { pathname: blob.pathname, fields: null, matches: [], error: "No pude leer el recibo. Llena los datos a mano." },
       { status: 200 }
     );
   }

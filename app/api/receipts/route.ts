@@ -33,8 +33,11 @@ export async function GET(req: NextRequest) {
 }
 
 /**
- * Guarda el recibo confirmado por el usuario: crea el gasto en la contabilidad
- * y el registro del recibo enlazado a ese gasto.
+ * Guarda el recibo confirmado por el usuario.
+ *
+ * Con `expenseId` lo adjunta a un gasto que ya existe (el que creo el atajo de
+ * Wallet al pagar) y NO toca sus datos: el usuario ya los reviso cuando se
+ * registro. Sin `expenseId` crea el gasto, como en una compra en efectivo.
  */
 export async function POST(req: NextRequest) {
   const user = await getAuthUser();
@@ -66,6 +69,24 @@ export async function POST(req: NextRequest) {
   const db = getDb();
   const now = new Date().toISOString();
 
+  // ── Adjuntar a un gasto existente ───────────────────────────
+  const attachTo = Number(b.expenseId);
+  if (Number.isInteger(attachTo) && attachTo > 0) {
+    const dueno = await db.execute(
+      `SELECT e.id, (SELECT COUNT(*) FROM receipts r WHERE r.expense_id = e.id) AS recibos
+         FROM expenses e WHERE e.id = ? AND e.user_id = ?`,
+      [attachTo, user.userId]
+    );
+    if (!dueno.rows[0]) {
+      return NextResponse.json({ error: "Ese gasto no existe" }, { status: 404 });
+    }
+    if (Number(dueno.rows[0].recibos) > 0) {
+      return NextResponse.json({ error: "Ese gasto ya tiene un recibo adjunto" }, { status: 409 });
+    }
+    await insertReceipt(db, user.userId, attachTo, pathname, b, valor, fecha, category, now, str);
+    return NextResponse.json({ ok: true, expenseId: attachTo, attached: true });
+  }
+
   const expense = await db.execute(
     `INSERT INTO expenses (amount, category, subcategory, note, date, created_at, payment_method, user_id)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -82,11 +103,30 @@ export async function POST(req: NextRequest) {
   );
   const expenseId = Number(expense.lastInsertRowid);
 
+  await insertReceipt(db, user.userId, expenseId, pathname, b, valor, fecha, category, now, str);
+
+  return NextResponse.json({ ok: true, expenseId });
+}
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/** El registro del recibo es el mismo se cree el gasto o se adjunte a uno. */
+async function insertReceipt(
+  db: ReturnType<typeof getDb>,
+  userId: number,
+  expenseId: number,
+  pathname: string,
+  b: any,
+  valor: number,
+  fecha: string,
+  category: string,
+  now: string,
+  str: (v: unknown, max?: number) => string | null
+) {
   await db.execute(
     `INSERT INTO receipts (user_id, expense_id, image_url, proveedor, nit, valor, correo, telefono, fecha, categoria, raw_ai_json, created_at)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
-      user.userId,
+      userId,
       expenseId,
       pathname,
       str(b.proveedor),
@@ -100,6 +140,4 @@ export async function POST(req: NextRequest) {
       now,
     ]
   );
-
-  return NextResponse.json({ ok: true, expenseId });
 }

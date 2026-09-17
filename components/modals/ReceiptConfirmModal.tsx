@@ -40,12 +40,45 @@ export default function ReceiptConfirmModal() {
   const [pm, setPm] = useState(() => defaultPayment(data));
   const [saving, setSaving] = useState(false);
   const [zoom, setZoom] = useState(false);
+  // El atajo de Wallet ya pudo haber creado este gasto: mientras no se decida,
+  // no se muestra el formulario, para no crear el duplicado por inercia.
+  const [ignorarMatches, setIgnorarMatches] = useState(false);
 
   if (!pending) return null;
 
   function close() {
     URL.revokeObjectURL(pending!.previewUrl);
     setPending(null);
+  }
+
+  /** Adjunta la foto a un gasto que ya existe, sin crear otro. */
+  async function attach(expenseId: number) {
+    setSaving(true);
+    try {
+      const res = await fetch("/api/receipts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          pathname: pending!.pathname,
+          proveedor, nit, correo, telefono, fecha,
+          valor: parseMiles(valor),
+          category: cat ?? "General",
+          raw: pending!.fields,
+          expenseId,
+        }),
+      });
+      if (res.status === 401) { window.location.assign("/login"); return; }
+      if (!res.ok) throw new Error();
+
+      close();
+      toast("🧾 Recibo adjuntado al gasto");
+      markSaved();
+      refresh();
+    } catch {
+      toast("No se pudo adjuntar el recibo", "err");
+    } finally {
+      setSaving(false);
+    }
   }
 
   async function save() {
@@ -81,6 +114,7 @@ export default function ReceiptConfirmModal() {
     }
   }
 
+  const duplicados = ignorarMatches ? [] : pending.matches;
   const categories = categoriesOf(data, "gasto");
   const subs = cat ? findCategory(data, cat, "gasto").subs : [];
   const conf = f ? CONFIANZA_LABEL[f.confianza] : null;
@@ -115,6 +149,44 @@ export default function ReceiptConfirmModal() {
           </div>
         </div>
 
+        {duplicados.length > 0 ? (
+          <>
+            <div style={avisoDup}>
+              <strong style={{ display: "block", marginBottom: "3px" }}>
+                Este gasto ya esta registrado
+              </strong>
+              El atajo lo creo al momento de pagar. Adjunta el recibo al gasto que ya
+              existe y no queda duplicado.
+            </div>
+
+            {duplicados.map((m) => (
+              <div key={m.id} style={dupCard}>
+                <div style={{ minWidth: 0, flex: 1 }}>
+                  <div style={{ fontSize: "15px", fontWeight: 700, color: "var(--text)" }}>
+                    $ {fmtMiles(m.amount)}
+                  </div>
+                  <div style={{ fontSize: "12px", color: "var(--muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {m.category}
+                    {m.note ? ` · ${m.note}` : ""}
+                    {` · ${m.date === todayDate() ? "hoy" : m.date}`}
+                    {m.payment_method ? ` · ${m.payment_method}` : ""}
+                  </div>
+                </div>
+                <button onClick={() => attach(m.id)} disabled={saving} style={btnAttach}>
+                  {saving ? "..." : "Adjuntar aqui"}
+                </button>
+              </div>
+            ))}
+
+            <div style={{ display: "flex", gap: "8px", marginTop: "14px" }}>
+              <button onClick={close} disabled={saving} style={btnSecondary}>Descartar</button>
+              <button onClick={() => setIgnorarMatches(true)} disabled={saving} style={btnSecondary}>
+                Es otro gasto
+              </button>
+            </div>
+          </>
+        ) : (
+        <>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "10px" }}>
           <Field label="Valor total" value={valor} onChange={setValor} money placeholder="45.000" />
           <Field label="Fecha" value={fecha} onChange={setFecha} type="date" />
@@ -153,6 +225,8 @@ export default function ReceiptConfirmModal() {
             {saving ? "Guardando…" : "Guardar gasto"}
           </button>
         </div>
+        </>
+        )}
       </div>
 
       {zoom && (
@@ -274,4 +348,39 @@ const btnSecondary: React.CSSProperties = {
   fontSize: "13px",
   cursor: "pointer",
   fontFamily: "var(--font-sans)",
+};
+
+const avisoDup: React.CSSProperties = {
+  background: "#FFFBEB",
+  border: "1px solid #FDE68A",
+  borderRadius: "12px",
+  padding: "11px 13px",
+  marginBottom: "10px",
+  fontSize: "12.5px",
+  lineHeight: 1.5,
+  color: "#92400E",
+};
+
+const dupCard: React.CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  gap: "10px",
+  background: "var(--bg)",
+  border: "1px solid var(--border)",
+  borderRadius: "12px",
+  padding: "11px 12px",
+  marginBottom: "7px",
+};
+
+const btnAttach: React.CSSProperties = {
+  flexShrink: 0,
+  background: "var(--sage)",
+  color: "#fff",
+  border: "none",
+  borderRadius: "10px",
+  padding: "9px 13px",
+  fontSize: "13px",
+  fontWeight: 600,
+  fontFamily: "var(--font-sans)",
+  cursor: "pointer",
 };

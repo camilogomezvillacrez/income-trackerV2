@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { Row } from "@libsql/client";
-import type { Category, Receipt, ReceiptFields } from "@/types";
+import type { Category, ExpenseMatch, Receipt, ReceiptFields } from "@/types";
+import { getDb } from "@/lib/db";
 import { groupCategories } from "@/lib/categoryMeta";
 
 const client = new Anthropic();
@@ -121,4 +122,44 @@ export function rowToReceipt(r: Row): Receipt {
     categoria: r.categoria === null ? null : String(r.categoria),
     created_at: String(r.created_at),
   };
+}
+
+/**
+ * Gastos ya registrados que podrían ser este mismo recibo.
+ *
+ * El atajo de Wallet crea el gasto en el momento del pago, así que al
+ * fotografiar el recibo después había dos. Se buscan por valor y fecha
+ * cercanos, y se descartan los que ya tienen un recibo adjunto.
+ *
+ * La tolerancia en el valor cubre propinas y redondeos; la de fecha, que el
+ * banco reporte el cobro un día después.
+ */
+export async function findExpenseMatches(
+  userId: number,
+  valor: number,
+  fecha: string
+): Promise<ExpenseMatch[]> {
+  if (!Number.isFinite(valor) || valor <= 0) return [];
+
+  const tolerancia = Math.max(100, valor * 0.01);
+  const res = await getDb().execute(
+    `SELECT e.id, e.amount, e.category, e.note, e.date, e.payment_method
+       FROM expenses e
+      WHERE e.user_id = ?
+        AND ABS(e.amount - ?) <= ?
+        AND ABS(julianday(e.date) - julianday(?)) <= 3
+        AND NOT EXISTS (SELECT 1 FROM receipts r WHERE r.expense_id = e.id)
+      ORDER BY ABS(e.amount - ?), ABS(julianday(e.date) - julianday(?))
+      LIMIT 5`,
+    [userId, valor, tolerancia, fecha, valor, fecha]
+  );
+
+  return res.rows.map((r) => ({
+    id: Number(r.id),
+    amount: Number(r.amount),
+    category: String(r.category),
+    note: String(r.note ?? ""),
+    date: String(r.date),
+    payment_method: r.payment_method === null ? null : String(r.payment_method),
+  }));
 }

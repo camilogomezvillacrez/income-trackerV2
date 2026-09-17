@@ -3,13 +3,15 @@
 import { create } from "zustand";
 import { useToastStore } from "@/store/dashboardStore";
 import { resizeForUpload } from "@/lib/imageResize";
-import type { ReceiptFields } from "@/types";
+import type { ExpenseMatch, ReceiptFields } from "@/types";
 
 interface PendingScan {
   pathname: string;
   fields: ReceiptFields | null;
   /** Vista previa local: la foto ya está en el navegador, no hay que volver a bajarla. */
   previewUrl: string;
+  /** Gastos ya registrados que podrían ser este mismo recibo. */
+  matches: ExpenseMatch[];
 }
 
 interface ReceiptStore {
@@ -56,7 +58,7 @@ export async function scanReceipt(file: File): Promise<void> {
     if (!res.ok) throw new Error(json.error ?? "Error al escanear");
 
     if (json.error) toast(json.error, "err");
-    setPending({ pathname: json.pathname, fields: json.fields, previewUrl });
+    setPending({ pathname: json.pathname, fields: json.fields, matches: json.matches ?? [], previewUrl });
   } catch {
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     toast("No se pudo escanear el recibo", "err");
