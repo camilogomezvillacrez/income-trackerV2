@@ -6,13 +6,17 @@ import {
   Line,
   XAxis,
   YAxis,
-  CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
 } from "recharts";
 import { useDashboardStore } from "@/store/dashboardStore";
 import { fmt } from "@/lib/utils";
+
+const SERIES = [
+  { key: "Ingresos", color: "#10B981" },
+  { key: "Gastos", color: "#DC2626" },
+  { key: "Balance", color: "#6366F1" },
+] as const;
 
 export default function ComboChart() {
   const data = useDashboardStore((s) => s.data);
@@ -26,40 +30,43 @@ export default function ComboChart() {
   }));
 
   return (
-    <ResponsiveContainer width="100%" height="100%">
-      <ComposedChart data={chartData} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,.04)" vertical={false} />
-        <XAxis
-          dataKey="month"
-          tick={{ fontSize: 10, fill: "#4B5563", fontFamily: "var(--font-sans)" }}
-          axisLine={false}
-          tickLine={false}
-        />
-        <YAxis
-          tick={{ fontSize: 10, fill: "#4B5563", fontFamily: "var(--font-sans)" }}
-          axisLine={false}
-          tickLine={false}
-          tickFormatter={(v) => "$" + Math.round(v / 1000) + "k"}
-        />
-        <Tooltip
-          formatter={(v, name) => [fmt(Number(v ?? 0)), String(name)]}
-          contentStyle={{ fontSize: 11, fontFamily: "var(--font-sans)", borderRadius: 8, border: "1px solid #E2E4E9" }}
-        />
-        <Legend
-          wrapperStyle={{ fontSize: 10, fontFamily: "var(--font-sans)" }}
-          iconSize={10}
-        />
-        <Bar dataKey="Ingresos" fill="rgba(59,109,17,.18)" stroke="#3B6D11" strokeWidth={2} radius={[4,4,0,0]} />
-        <Bar dataKey="Gastos"   fill="rgba(153,27,27,.18)"  stroke="#991B1B" strokeWidth={2} radius={[4,4,0,0]} />
-        <Line
-          type="monotone"
-          dataKey="Balance"
-          stroke="#1D4ED8"
-          strokeWidth={2}
-          dot={{ r: 3, fill: "#1D4ED8" }}
-          fill="rgba(29,78,216,.08)"
-        />
-      </ComposedChart>
-    </ResponsiveContainer>
+    <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+      <div style={{ flex: 1, minHeight: 0 }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <ComposedChart data={chartData} margin={{ top: 4, right: 0, left: 0, bottom: 0 }} barGap={4} barCategoryGap="28%">
+            <XAxis
+              dataKey="month"
+              tick={{ fontSize: 11, fill: "var(--muted)", fontFamily: "var(--font-sans)" }}
+              axisLine={false}
+              tickLine={false}
+            />
+            <YAxis hide />
+            <Tooltip
+              cursor={{ fill: "rgba(0,0,0,.03)" }}
+              formatter={(v, name) => [fmt(Number(v ?? 0)), String(name)]}
+              contentStyle={{ fontSize: 12, fontFamily: "var(--font-sans)", borderRadius: 12, border: "none", boxShadow: "0 4px 16px rgba(16,24,40,.12)" }}
+            />
+            <Bar dataKey="Ingresos" fill={SERIES[0].color} radius={[6, 6, 6, 6]} maxBarSize={18} />
+            <Bar dataKey="Gastos" fill={SERIES[1].color} radius={[6, 6, 6, 6]} maxBarSize={18} />
+            <Line
+              type="monotone"
+              dataKey="Balance"
+              stroke={SERIES[2].color}
+              strokeWidth={2.5}
+              dot={{ r: 3.5, fill: "var(--white)", stroke: SERIES[2].color, strokeWidth: 2 }}
+              activeDot={{ r: 5 }}
+            />
+          </ComposedChart>
+        </ResponsiveContainer>
+      </div>
+      <div style={{ display: "flex", justifyContent: "center", gap: "16px", paddingTop: "10px" }}>
+        {SERIES.map((s) => (
+          <span key={s.key} style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "12px", color: "var(--sub)" }}>
+            <span style={{ width: 9, height: 9, borderRadius: "50%", background: s.color }} />
+            {s.key}
+          </span>
+        ))}
+      </div>
+    </div>
   );
 }

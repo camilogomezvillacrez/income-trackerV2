@@ -46,12 +46,12 @@ export default function ResumenView() {
       {/* Charts row 1 */}
       <div className="charts-row">
         <Panel title="Ingresos vs Gastos · Balance">
-          <div style={{ height: "180px" }}>
+          <div style={{ height: "220px" }}>
             <ComboChart />
           </div>
         </Panel>
         <Panel
-          title="Distribución de gastos"
+          title="Gastos por categoría"
           action={
             <button
               onClick={() => setView("cats")}
@@ -61,9 +61,7 @@ export default function ResumenView() {
             </button>
           }
         >
-          <div style={{ height: "180px" }}>
-            <DonutChart />
-          </div>
+          <DonutChart />
         </Panel>
       </div>
 
@@ -98,7 +96,7 @@ export default function ResumenView() {
           <CategoryBars />
         </Panel>
         <Panel title="Gasto por día de la semana">
-          <div style={{ height: "140px" }}>
+          <div style={{ height: "160px" }}>
             <WeeklyChart />
           </div>
         </Panel>
@@ -127,6 +125,7 @@ export default function ResumenView() {
         .charts-row {
           display: grid;
           grid-template-columns: 3fr 2fr;
+          align-items: start;
           gap: 12px;
           margin-bottom: 12px;
         }
